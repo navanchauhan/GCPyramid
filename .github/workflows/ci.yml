@@ -25,10 +25,14 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: "3.9"
+      - name: Setup Poetry
+        uses: abatilo/actions-poetry@v2
+        with:
+          poetry-version: 1.1.15
       - name: Package for Windows
         run: |
           poetry install
-          ls
+          dir
           poetry run pyinstaller --add-data "assets:assets" -w main.py
       - uses: actions/upload-artifact@v3
         with:
