@@ -16,7 +16,7 @@ jobs:
   # This workflow contains a single job called "build"
   build:
     # The type of runner that the job will run on
-    runs-on: windows-latest
+    runs-on: macos-latest
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -32,7 +32,6 @@ jobs:
       - name: Package for Windows
         run: |
           poetry install
-          dir
           poetry run pyinstaller --add-data "assets;assets" -w main.py
       - uses: actions/upload-artifact@v3
         with:
