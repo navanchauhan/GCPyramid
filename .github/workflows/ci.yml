@@ -30,7 +30,7 @@ jobs:
           poetry install
           ls
           poetry run pyinstaller --add-data "assets:assets" -w main.py
-      - uses: actions/upload-artifat@v3
+      - uses: actions/upload-artifact@v3
         with:
           name: pyramid-scheme
           path: dist/
