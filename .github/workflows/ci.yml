@@ -16,7 +16,7 @@ jobs:
   # This workflow contains a single job called "build"
   build:
     # The type of runner that the job will run on
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -27,9 +27,13 @@ jobs:
           python-version: "3.9"
       - name: Package for Windows
         run: |
-          pip install pyinstaller pandas xlrd openpyxl Pillow matplotlib
-          python -m pyinstaller --add-data "assets;assets" -w main.py
-      - uses: actions/upload-artifact@v3
+          pip install pandas xlrd openpyxl Pillow matplotlib
+      - name: Package Application
+        uses: JackMcKew/pyinstaller-action-windows@main
         with:
-          name: pyramid-scheme
-          path: dist/
+          path: .
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: my-app
+          path: dist/windows

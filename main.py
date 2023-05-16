@@ -36,11 +36,7 @@ class CompanySelector:
         selected_df = self.df[self.df["Company Name"].isin(selected_companies)].sort_values(by="Weighting", ascending=False)
         pyramid_file_path = asksaveasfilename(defaultextension=".xlsx", filetypes=[("Excel files", "*.xlsx *.xls")])
 
-        if not pyramid_file_path:
-            return
 
-        with pd.ExcelWriter(pyramid_file_path) as writer:
-            selected_df.to_excel(writer, index=False)
 
         image_file_path = asksaveasfilename(defaultextension=".png", filetypes=[("Image files","*.png")])
 
@@ -149,12 +145,19 @@ class CompanySelector:
                 d.text((text_x, text_y), wrapped_company, font=fnt, fill=font_color)
 
 
+        print(image_file_path)
+
         # Save the image
         if not image_file_path:
             return
-        
+
         img.save(image_file_path)
 
+        if not pyramid_file_path:
+            return
+
+        with pd.ExcelWriter(pyramid_file_path) as writer:
+            selected_df.to_excel(writer, index=False)
 
         self.master.quit()
 
