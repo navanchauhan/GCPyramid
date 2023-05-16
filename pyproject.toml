@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "gcpyramid"
+version = "0.1.0"
+description = ""
+authors = ["navanchauhan <navanchauhan@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = ">=3.9,<3.12"
+pandas = "^2.0.0"
+xlrd = "^2.0.1"
+openpyxl = "^3.1.2"
+Pillow = "^9.5.0"
+matplotlib = "^3.7.1"
+pyinstaller = "^5.11.0"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
