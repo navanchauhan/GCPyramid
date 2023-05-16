@@ -25,7 +25,7 @@ class CompanySelector:
         self.company_listbox = tk.Listbox(self.master, selectmode=tk.MULTIPLE, exportselection=False)
         self.company_listbox.pack()
 
-        for company in self.df["Company Name"]:
+        for company in self.df["Symbol"]:
             self.company_listbox.insert(tk.END, company)
 
         self.create_pyramid_button = tk.Button(self.master, text="Create Pyramid", command=self.create_pyramid)
@@ -33,8 +33,8 @@ class CompanySelector:
 
     def create_pyramid(self):
         selected_companies = [self.company_listbox.get(index) for index in self.company_listbox.curselection()]
-        selected_df = self.df[self.df["Company Name"].isin(selected_companies)].sort_values(by="Weighting", ascending=False)
-        pyramid_file_path = asksaveasfilename(defaultextension=".xlsx", filetypes=[("Excel files", "*.xlsx *.xls")])
+        selected_df = self.df[self.df["Symbol"].isin(selected_companies)].sort_values(by="Weighting", ascending=False)
+        #pyramid_file_path = asksaveasfilename(defaultextension=".xlsx", filetypes=[("Excel files", "*.xlsx *.xls")])
 
 
 
@@ -63,6 +63,7 @@ class CompanySelector:
         font_color = (255, 255, 255)  # White color
         padding = 10  # Padding around blocks
         radius = 20 
+        max_companies_in_row = 5
 
         # Group the companies by their scores
         pyramid = {}
@@ -74,14 +75,32 @@ class CompanySelector:
         # Sort the pyramid keys in ascending order to have a pyramid shape
         sorted_keys = sorted(pyramid.keys())
 
+        companies = []
+
+        for key in sorted_keys:
+            if pyramid[key] == []:
+                continue
+            if len(pyramid[key])<=max_companies_in_row:
+                companies.append(pyramid[key])
+            else:
+                temp_list = []
+                for x in range(len(pyramid[key])//max_companies_in_row):
+                    temp_list.append(pyramid[key][x*max_companies_in_row:max_companies_in_row])
+
+                temp_list.append(pyramid[key][::-1][:len(pyramid[key])%max_companies_in_row])
+                for row in temp_list[::-1]:
+                    if row != []:
+                        companies.append(row)
+
+        for company_row in companies:
+            print(company_row)
+
+
         # Calculate the maximum number of companies in a group (this will be the width of your pyramid)
-        max_companies = max(len(v) for v in pyramid.values())
+        max_companies = max_companies_in_row #max(len(row) for row in companies) #max(len(v) for v in pyramid.values())
 
         # Calculate the total number of groups (the height of your pyramid)
-        total_groups = len(pyramid)
-
-        # Calculate the total number of groups (the height of your pyramid)
-        total_groups = len(pyramid)
+        total_groups = len(companies) #len(pyramid)
 
         # Calculate the size of each block based on the width and height of the image and the number of blocks
         block_size = min((img_width - padding) // max_companies - padding, (img_height - padding) // total_groups - padding)
@@ -97,6 +116,7 @@ class CompanySelector:
         # Calculate the starting position for the first block
         start_x = (img_width - total_width) // 2
         start_y = (img_height - total_height) // 2
+
 
         # Create an image big enough to hold the pyramid
         img = Image.new('RGB', (img_width, img_height), "white")
@@ -117,13 +137,11 @@ class CompanySelector:
             
             return '\n'.join(lines)
 
-
         # Loop over each level of the pyramid
-        for i, score in enumerate(sorted_keys):
-            companies = pyramid[score]
-            for j, company in enumerate(companies):
+        for i, row in enumerate(companies):
+            for j, company in enumerate(row):
                 # Calculate the position of the block
-                x = start_x + j * (block_width + padding) + (total_width - len(companies) * (block_width + padding)) // 2
+                x = start_x + j * (block_width + padding) + (max_companies - len(row)) * (block_width + padding) // 2
                 y = start_y + i * (block_size + padding)
 
                 # Draw the block
@@ -153,11 +171,11 @@ class CompanySelector:
 
         img.save(image_file_path)
 
-        if not pyramid_file_path:
-            return
-
-        with pd.ExcelWriter(pyramid_file_path) as writer:
-            selected_df.to_excel(writer, index=False)
+        """if not pyramid_file_path:
+                                    return
+                        
+                                with pd.ExcelWriter(pyramid_file_path) as writer:
+                                    selected_df.to_excel(writer, index=False)"""
 
         self.master.quit()
 
