@@ -3,6 +3,28 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 
+def pyramid_list(lst):
+    i = 0
+    rows = 0
+    pyramid = []
+
+    # Figure out the number of rows
+    while i < len(lst):
+        rows += 1
+        i += rows
+
+    # Generate the pyramid
+    i = 0
+    for r in range(1, rows+1):
+        row = []
+        for j in range(r):
+            if i < len(lst):
+                row.append(lst[i])
+                i += 1
+        pyramid.append(row)
+    
+    return pyramid
+
 class CompanySelector:
     def __init__(self, master):
         self.master = master
@@ -77,6 +99,7 @@ class CompanySelector:
 
         companies = []
 
+
         for key in sorted_keys:
             if pyramid[key] == []:
                 continue
@@ -92,12 +115,27 @@ class CompanySelector:
                     if row != []:
                         companies.append(row)
 
+        everything_list = []
+        for row in companies:
+            if row == []:
+                continue
+            for company in row:
+                everything_list.append(company)
+
+        companies = everything_list
+
+        companies = pyramid_list(companies)
+
+        if len(companies) >= 2:
+            if len(companies[-1]) < len(companies[-2]):
+                companies[-2].extend(companies[-1])
+                companies.pop()
+
         for company_row in companies:
             print(company_row)
 
-
         # Calculate the maximum number of companies in a group (this will be the width of your pyramid)
-        max_companies = max_companies_in_row #max(len(row) for row in companies) #max(len(v) for v in pyramid.values())
+        max_companies = max(len(row) for row in companies) #max(len(v) for v in pyramid.values())
 
         # Calculate the total number of groups (the height of your pyramid)
         total_groups = len(companies) #len(pyramid)
