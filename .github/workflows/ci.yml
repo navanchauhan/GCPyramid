@@ -28,7 +28,7 @@ jobs:
       - name: Setup Poetry
         uses: abatilo/actions-poetry@v2
         with:
-          poetry-version: 1.1.15
+          poetry-version: 1.1.6
       - name: Package for Windows
         run: |
           poetry install
