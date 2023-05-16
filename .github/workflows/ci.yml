@@ -32,7 +32,7 @@ jobs:
       - name: Package for Windows
         run: |
           poetry install
-          poetry run pyinstaller --add-data "assets;assets" -w main.py
+          poetry run pyinstaller --add-data "assets:assets" -w main.py
       - uses: actions/upload-artifact@v3
         with:
           name: pyramid-scheme
