@@ -44,14 +44,26 @@ class CompanySelector:
     def show_companies(self):
         self.select_file_button.pack_forget()
 
-        self.company_listbox = tk.Listbox(self.master, selectmode=tk.MULTIPLE, exportselection=False)
-        self.company_listbox.pack()
+        self.company_listbox = tk.Listbox(self.master, selectmode=tk.MULTIPLE, exportselection=False, height=20)
+        self.company_listbox.pack(expand=True)
 
         for company in self.df["Symbol"]:
             self.company_listbox.insert(tk.END, company)
 
+
+        # bind the listbox to an onselect event
+        self.company_listbox.bind('<<ListboxSelect>>', self.onselect)
+
+        self.num_companies_selected_label = tk.Label(self.master, text="0 companies selected")
+        self.num_companies_selected_label.pack()
+
         self.create_pyramid_button = tk.Button(self.master, text="Create Pyramid", command=self.create_pyramid)
         self.create_pyramid_button.pack()
+
+    def onselect(self, evt):
+        w = evt.widget
+        num_selected = len(w.curselection())
+        self.num_companies_selected_label.config(text=f"{num_selected} companies selected")
 
     def create_pyramid(self):
         selected_companies = [self.company_listbox.get(index) for index in self.company_listbox.curselection()]
@@ -220,4 +232,5 @@ class CompanySelector:
 if __name__ == "__main__":
     root = tk.Tk()
     app = CompanySelector(root)
+    #root.geometry("500x200")
     root.mainloop()
