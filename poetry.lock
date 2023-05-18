@@ -312,6 +312,17 @@ optional = false
 python-versions = ">=3.7"
 
 [[package]]
+name = "ttkwidgets"
+version = "0.13.0"
+description = "A collection of widgets for Tkinter's ttk extensions by various authors"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.dependencies]
+pillow = "*"
+
+[[package]]
 name = "typing-extensions"
 version = "4.5.0"
 description = "Backported and Experimental Type Hints for Python 3.7+"
@@ -355,7 +366,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "flake8 (<5)", "pytest-co
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.9,<3.12"
-content-hash = "a7a1966a3c5f79e737f2d79e556b59f75b2167a18ac0eab727aac3952efab93b"
+content-hash = "4131f9d85eea1c168c6737c28050f61d9b759ae94cffdbb1bbbf35eca19a6cf4"
 
 [metadata.files]
 altgraph = []
@@ -383,6 +394,7 @@ setuptools-scm = []
 six = []
 sv-ttk = []
 tomli = []
+ttkwidgets = []
 typing-extensions = []
 tzdata = []
 xlrd = []

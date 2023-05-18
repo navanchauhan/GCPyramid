@@ -13,6 +13,7 @@ Pillow = "^9.5.0"
 matplotlib = "^3.7.1"
 pyinstaller = "^5.11.0"
 sv-ttk = "^2.4.5"
+ttkwidgets = "^0.13.0"
 
 [tool.poetry.dev-dependencies]
 

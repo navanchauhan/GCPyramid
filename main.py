@@ -3,6 +3,8 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 
+from ttkwidgets import ScrolledListbox
+
 import sv_ttk
 
 import os
@@ -48,11 +50,11 @@ class CompanySelector:
     def show_companies(self):
         self.select_file_button.pack_forget()
 
-        self.company_listbox = tk.Listbox(self.master, selectmode=tk.MULTIPLE, exportselection=False, height=20)
+        self.company_listbox = ScrolledListbox(self.master, selectmode=tk.MULTIPLE, exportselection=False, height=20)
         self.company_listbox.pack(expand=True)
 
         for company in self.df["Symbol"]:
-            self.company_listbox.insert(tk.END, company)
+            self.company_listbox.listbox.insert(tk.END, company)
 
 
         # bind the listbox to an onselect event

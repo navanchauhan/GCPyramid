@@ -27,7 +27,7 @@ jobs:
           python-version: "3.9"
       - name: Package for Windows
         run: |
-          pip install pyinstaller pandas xlrd openpyxl Pillow matplotlib sv_ttk
+          pip install pyinstaller pandas xlrd openpyxl Pillow matplotlib sv_ttk ttkwidgets
           pyinstaller --add-data "assets;assets" --onefile -c --noconfirm main.py
       - uses: actions/upload-artifact@v3
         with:
