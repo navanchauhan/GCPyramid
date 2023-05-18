@@ -3,6 +3,10 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 
+import sv_ttk
+
+import os
+
 def pyramid_list(lst):
     i = 0
     rows = 0
@@ -92,8 +96,9 @@ class CompanySelector:
 
         # Initialize some parameters
         img_width = 3300
-        img_height = 2550
+        img_height = 1550 #2550
         block_color = (0, 0, 255)  # Blue color
+        dividend_color = (0, 255, 0)  # Green color
         font_color = (255, 255, 255)  # White color
         padding = 10  # Padding around blocks
         radius = 20 
@@ -232,5 +237,6 @@ class CompanySelector:
 if __name__ == "__main__":
     root = tk.Tk()
     app = CompanySelector(root)
-    #root.geometry("500x200")
+    if os.name != "posix":
+        sv_ttk.set_theme("dark")
     root.mainloop()
