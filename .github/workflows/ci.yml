@@ -28,7 +28,7 @@ jobs:
       - name: Package for Windows
         run: |
           pip install pyinstaller pandas xlrd openpyxl Pillow matplotlib sv-ttk ttkwidgets
-          pyinstaller --add-data "assets;assets" --onefile -c --noconfirm main.py
+          pyinstaller --add-data "assets;assets" --onefile -c --noconfirm --collect-data sv_ttk main.py
       - uses: actions/upload-artifact@v3
         with:
           name: pyramid-scheme
