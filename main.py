@@ -34,7 +34,7 @@ class CompanySelector:
         self.master = master
         self.master.title("Company Selector")
 
-        self.select_file_button = tk.Button(self.master, text="Select Excel File", command=self.load_file)
+        self.select_file_button = ttk.Button(self.master, text="Select Excel File", command=self.load_file)
         self.select_file_button.pack()
 
     def load_file(self):
@@ -58,10 +58,10 @@ class CompanySelector:
         # bind the listbox to an onselect event
         self.company_listbox.bind('<<ListboxSelect>>', self.onselect)
 
-        self.num_companies_selected_label = tk.Label(self.master, text="0 companies selected")
+        self.num_companies_selected_label = ttk.Label(self.master, text="0 companies selected")
         self.num_companies_selected_label.pack()
 
-        self.create_pyramid_button = tk.Button(self.master, text="Create Pyramid", command=self.create_pyramid)
+        self.create_pyramid_button = ttk.Button(self.master, text="Create Pyramid", command=self.create_pyramid)
         self.create_pyramid_button.pack()
 
     def onselect(self, evt):
@@ -238,5 +238,7 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = CompanySelector(root)
     if os.name != "posix":
+        sv_ttk.set_theme("dark")
+    else:
         sv_ttk.set_theme("dark")
     root.mainloop()
