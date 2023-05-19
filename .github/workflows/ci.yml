@@ -27,7 +27,7 @@ jobs:
           python-version: "3.9"
       - name: Package for Windows
         run: |
-          pip install pyinstaller pandas xlrd openpyxl Pillow matplotlib sv-ttk ttkwidgets
+          pip install pyinstaller pandas xlrd openpyxl Pillow matplotlib sv-ttk ttkwidgets sentry-sdk
           pyinstaller --add-data "assets;assets" --onefile -c --noconfirm --collect-data sv_ttk main.py
       - uses: actions/upload-artifact@v3
         with:
