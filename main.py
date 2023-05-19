@@ -58,7 +58,7 @@ class CompanySelector:
 
 
         # bind the listbox to an onselect event
-        self.company_listbox.bind('<<ListboxSelect>>', self.onselect)
+        self.company_listbox.listbox.bind('<<ListboxSelect>>', self.onselect)
 
         self.num_companies_selected_label = ttk.Label(self.master, text="0 companies selected")
         self.num_companies_selected_label.pack()
@@ -72,7 +72,7 @@ class CompanySelector:
         self.num_companies_selected_label.config(text=f"{num_selected} companies selected")
 
     def create_pyramid(self):
-        selected_companies = [self.company_listbox.get(index) for index in self.company_listbox.curselection()]
+        selected_companies = [self.company_listbox.listbox.get(index) for index in self.company_listbox.listbox.curselection()]
         selected_df = self.df[self.df["Symbol"].isin(selected_companies)].sort_values(by="Weighting", ascending=False)
         #pyramid_file_path = asksaveasfilename(defaultextension=".xlsx", filetypes=[("Excel files", "*.xlsx *.xls")])
 
