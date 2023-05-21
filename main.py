@@ -35,9 +35,9 @@ class CompanySelector:
     def __init__(self, master):
         self.master = master
         self.master.title("Company Selector")
-
+        self.master.geometry("600x600")
         self.select_file_button = ttk.Button(self.master, text="Select Excel File", command=self.load_file)
-        self.select_file_button.pack()
+        self.select_file_button.pack(pady=250)
 
     def load_file(self):
         file_path = askopenfilename(filetypes=[("Excel files", "*.xlsx *.xls")])
@@ -49,6 +49,7 @@ class CompanySelector:
 
     def show_companies(self):
         self.select_file_button.pack_forget()
+        self.master.geometry("")
 
         self.company_listbox = ScrolledListbox(self.master, selectmode=tk.MULTIPLE, exportselection=False, height=20)
         self.company_listbox.pack(expand=True)
@@ -62,6 +63,12 @@ class CompanySelector:
 
         self.num_companies_selected_label = ttk.Label(self.master, text="0 companies selected")
         self.num_companies_selected_label.pack()
+
+        self.pyramid_title_string = tk.StringVar()
+        self.pyramid_title_string.set("Copyright (2004-2023) by Gentry Capital Corporation")
+
+        self.pyramid_title =  ttk.Entry(self.master, textvariable=self.pyramid_title_string)
+        self.pyramid_title.pack()
 
         self.create_pyramid_button = ttk.Button(self.master, text="Create Pyramid", command=self.create_pyramid)
         self.create_pyramid_button.pack()
@@ -83,8 +90,11 @@ class CompanySelector:
         company_scores = {}
 
         # For each 'Company Name', company_scores[company] = 'Weighting' for that company
-        for company, ticker, weighting in zip(selected_df["Company Name"], selected_df["Symbol"], selected_df["Weighting"]):
-            company_scores[f'{company} ({ticker})'] = weighting
+        for company, ticker, weighting, dividend in zip(selected_df["Company Name"], selected_df["Symbol"], selected_df["Weighting"], selected_df["Dividend?"]):
+            extra_char = ""
+            if dividend.strip() == "Y":
+                extra_char = "*"
+            company_scores[f'{company} ({ticker}){extra_char}'] = weighting
 
         from PIL import Image, ImageDraw, ImageFont
         import math
@@ -194,6 +204,16 @@ class CompanySelector:
             
             return '\n'.join(lines)
 
+        min_font_size = 100_000_000
+
+        for i, row in enumerate(companies):
+            for j, company in enumerate(row):
+                font_size = min(block_width // (len(company) // 2 + 1), block_height // 2)
+                if font_size < min_font_size:
+                    min_font_size = font_size
+
+        num_dividends = 0
+
         # Loop over each level of the pyramid
         for i, row in enumerate(companies):
             for j, company in enumerate(row):
@@ -201,11 +221,18 @@ class CompanySelector:
                 x = start_x + j * (block_width + padding) + (max_companies - len(row)) * (block_width + padding) // 2
                 y = start_y + i * (block_size + padding)
 
+                # Calculate the color of the block
+                if company[-1] == "*":
+                    block_color = dividend_color
+                    num_dividends += 1
+                else:
+                    block_color = (0, 0, 255)
+
                 # Draw the block
                 d.rounded_rectangle([x, y, x + block_width, y + block_height], fill=block_color, radius=radius)
 
                 # Adjust font size based on the length of the company name and block size
-                font_size = min(block_width // (len(company) // 2 + 1), block_height // 2)
+                font_size = min_font_size #min(block_width // (len(company) // 2 + 1), block_height // 2)
                 fnt = ImageFont.truetype('./assets/arial.ttf', font_size)
 
                 # Implement word wrap for the company name
@@ -226,7 +253,50 @@ class CompanySelector:
         if not image_file_path:
             return
 
-        img.save(image_file_path)
+        image_logo = Image.open("./assets/GentryCapitalRGB.jpg")
+        _, l_height = image_logo.size
+
+        new_img = Image.new("RGB", (img_width, l_height), "white")
+        left = (new_img.width - image_logo.width) // 2
+        top = (new_img.height - image_logo.height) // 2
+
+        new_img.paste(image_logo, (left, top))
+
+        final_img = Image.new("RGB", (img_width, 2550), "white")
+        final_img.paste(new_img, (0, 0))
+
+        text1 = self.pyramid_title_string.get()
+        text2 = f"({num_dividends} Dividend payors - all identified by asterisk)"
+
+        draw = ImageDraw.Draw(final_img)
+        font_size = 60
+
+        font1 = ImageFont.truetype('./assets/arial.ttf', font_size)
+        text_width1, _ = draw.textsize(text1, font=font1)
+        while text_width1 > final_img.width:
+            font_size -= 1
+            font1 = ImageFont.truetype('./assets/arial.ttf', font_size)
+            text_width1, _ = draw.textsize(text1, font=font1)
+
+        font2 = ImageFont.truetype('./assets/arial.ttf', font_size)
+        text_width2, _ = draw.textsize(text2, font=font2)
+        while text_width2 > final_img.width:
+            font_size -= 1
+            font2 = ImageFont.truetype('./assets/arial.ttf', font_size)
+            text_width2, _ = draw.textsize(text2, font=font2)
+
+        start_x1 = (final_img.width - text_width1) // 2
+        start_y1 = image_logo.height + (text_height // 3)
+
+        start_x2 = (final_img.width - text_width2) // 2
+        start_y2 = image_logo.height + 4 * (text_height // 3)
+        
+        draw.text((start_x1, start_y1), text1, font=font1, fill="black")
+        draw.text((start_x2, start_y2), text2, font=font2, fill="black")
+
+        final_img.paste(img, (0, l_height + (2550 - l_height - img_height)))
+
+        final_img.save(image_file_path)
 
         """if not pyramid_file_path:
                                     return
