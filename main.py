@@ -45,6 +45,8 @@ class CompanySelector:
             return
 
         self.df = pd.read_excel(file_path)
+        self.df = self.df[self.df['Company Name'].notna()]
+        self.df = self.df[self.df['Symbol'].notna()]
         self.show_companies()
 
     def show_companies(self):
