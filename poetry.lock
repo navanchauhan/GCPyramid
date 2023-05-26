@@ -41,6 +41,17 @@ optional = false
 python-versions = ">=3.6"
 
 [[package]]
+name = "darkdetect"
+version = "0.8.0"
+description = "Detect OS Dark Mode from Python"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.extras]
+macos-listener = ["pyobjc-framework-cocoa"]
+
+[[package]]
 name = "et-xmlfile"
 version = "1.1.0"
 description = "An implementation of lxml.xmlfile for the standard library"
@@ -390,7 +401,7 @@ python-versions = ">=2"
 
 [[package]]
 name = "urllib3"
-version = "1.26.15"
+version = "1.26.16"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
 category = "main"
 optional = false
@@ -443,13 +454,14 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "flake8 (<5)", "pytest-co
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.9,<3.12"
-content-hash = "4361bea3f63aca4de615c1da392d4fb7df89aa51b1f1e4636a01bd6ed50f5efa"
+content-hash = "ba4a511abe2a32ba16b21a014272059c023a1a675fab76e48f9762c70b536122"
 
 [metadata.files]
 altgraph = []
 certifi = []
 contourpy = []
 cycler = []
+darkdetect = []
 et-xmlfile = []
 fonttools = []
 importlib-resources = []

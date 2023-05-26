@@ -15,6 +15,7 @@ pyinstaller = "^5.11.0"
 sv-ttk = "^2.4.5"
 ttkwidgets = "^0.13.0"
 sentry-sdk = "^1.23.1"
+darkdetect = "^0.8.0"
 
 [tool.poetry.dev-dependencies]
 

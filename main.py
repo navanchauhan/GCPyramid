@@ -2,10 +2,12 @@ import pandas as pd
 import tkinter as tk
 from tkinter import ttk
 from tkinter.filedialog import askopenfilename, asksaveasfilename
+from datetime import datetime
 
 from ttkwidgets import ScrolledListbox
 
 import sv_ttk
+import darkdetect
 
 import os
 
@@ -75,10 +77,17 @@ def pyramid_list(lst, sort_canadian=True):
                     pyramid[-1].pop(company_idx)
                     pyramid[-2].append(company_to_add)
     
-    if len(pyramid) > 3:
-        if len(pyramid[-1]) < len(pyramid[-2]):
-            pyramid[-3].append(pyramid[-2][-1])
-            pyramid[-2].pop(-1)
+    for _ in range(4):
+        if len(pyramid) > 3:
+            if len(pyramid[-1]) < len(pyramid[-2]):
+                pyramid[-3].append(pyramid[-2][-1])
+                pyramid[-2].pop(-1)
+
+    for _ in range(3):
+        if len(pyramid) > 4:
+            if len(pyramid[-2]) < len(pyramid[-3]):
+                pyramid[-4].append(pyramid[-3][0])
+                pyramid[-3].pop(0)
 
     return pyramid
 
@@ -132,7 +141,7 @@ class CompanySelector:
         self.companies_label.place(x=340,y=320,width=200, height=30)
 
         self.pyramid_title_string = tk.StringVar()
-        self.pyramid_title_string.set("Copyright (2004-2023) by Gentry Capital Corporation")
+        self.pyramid_title_string.set(f"Copyright (2004-{datetime.today().year}) by Gentry Capital Corporation")
 
         #self.pyramid_title =  ttk.Entry(self.master, textvariable=self.pyramid_title_string)
         #self.pyramid_title.pack()
@@ -170,7 +179,7 @@ class CompanySelector:
         #self.create_pyramid_button.pack()
         self.create_pyramid_button.place(x=250,y=450,width=150,height=30)
 
-        self.reset_button = ttk.Button(self.master, text="Reset", command=self.create_pyramid)
+        self.reset_button = ttk.Button(self.master, text="Reset", command=self.reset_fields)
         self.reset_button.place(x=250+150+25, y=450, width=150, height=30)
 
     def onselect(self, evt):
@@ -178,9 +187,17 @@ class CompanySelector:
         num_selected = len(w.curselection())
         self.num_companies_selected_label.config(text=f"{num_selected}")
 
+    def reset_fields(self):
+        self.generate_word_doc.set(0)
+        self.generate_pyramid_var.set(1)
+        self.prepared_for_string.set("")
+        self.advisor_string.set("")
+        self.company_listbox.listbox.selection_clear(0,'end')
+        self.num_companies_selected_label.config(text="0")
+
     def create_pyramid(self):
         selected_companies_tmp = [self.company_listbox.listbox.get(index) for index in self.company_listbox.listbox.curselection()]
-        selected_companies = [x.split(" - ")[0] for x in selected_companies_tmp]
+        selected_companies = [x.split(" - ")[0].strip() for x in selected_companies_tmp]
         selected_df = self.df[self.df["Symbol"].isin(selected_companies)].sort_values(by="Weighting", ascending=False)
         #pyramid_file_path = asksaveasfilename(defaultextension=".xlsx", filetypes=[("Excel files", "*.xlsx *.xls")])
 
@@ -211,6 +228,7 @@ class CompanySelector:
 
         # Initialize some parameters
         img_width = 3300
+        pyramid_width = 3000
         img_height = 1550 #2550
         overall_height = 2550
         block_color = (3, 37, 126)  # Blue color
@@ -218,7 +236,7 @@ class CompanySelector:
         font_color = (255, 255, 255)  # White color
         normal_block = (3, 37, 126) # Dark Blue  
         padding = 10  # Padding around blocks
-        radius = 20 
+        radius = 10 
         logo_padding = 100 # top padding for logo
         pyramid_padding_bottom = 350 # bottom padding for pyramid
         max_companies_in_row = 5
@@ -274,10 +292,10 @@ class CompanySelector:
         total_groups = len(companies) #len(pyramid)
 
         # Calculate the size of each block based on the width and height of the image and the number of blocks
-        block_size = min((img_width - padding) // max_companies - padding, (img_height - padding) // total_groups - padding)
+        block_size = min((pyramid_width - padding) // max_companies - padding, (img_height - padding) // total_groups - padding)
 
         # Calculate the size of each block based on the width and height of the image and the number of blocks
-        block_width = (img_width - padding) // max_companies - padding
+        block_width = (pyramid_width - padding) // max_companies - padding
         block_height = (img_height - padding) // total_groups - padding
 
         # Calculate the total width and height of the blocks (including padding)
@@ -285,12 +303,12 @@ class CompanySelector:
         total_height = total_groups * (block_height + padding)
 
         # Calculate the starting position for the first block
-        start_x = (img_width - total_width) // 2
+        start_x = (pyramid_width - total_width) // 2
         start_y = (img_height - total_height) // 2
 
 
         # Create an image big enough to hold the pyramid
-        img = Image.new('RGB', (img_width, img_height), "white")
+        img = Image.new('RGB', (pyramid_width, img_height), "white")
         d = ImageDraw.Draw(img)
 
         def wrap_text(text, max_length):
@@ -372,7 +390,21 @@ class CompanySelector:
         text1 = self.pyramid_title_string.get()
         text2 = f"({num_dividends} Dividend payors - all identified by asterisk)"
         text3 = "FOR INTERNAL USE ONLY"
+        text4 = datetime.today().strftime("%B %d, %Y")
+        text5 = ""
 
+        if self.prepared_for_string.get() != "":
+            print(f"Prepared for string present - {self.prepared_for_string.get()}")
+            text5 += f"Prepared for {self.prepared_for_string.get()}"
+        if self.advisor_string.get() != "":
+            advisor = self.advisor_string.get()
+            if text5 != "":
+                tmp_var = [text5, f"By {advisor}"]
+                text5 = tmp_var
+            else:
+                text5 = f"By {advisor}"
+
+        print(text5)
         draw = ImageDraw.Draw(final_img)
         font_size = 60
 
@@ -383,17 +415,18 @@ class CompanySelector:
             font1 = ImageFont.truetype(primary_font, font_size)
             text_width1 = draw.textlength(text1, font=font1)
 
-        font2 = ImageFont.truetype(primary_font, font_size)
+        font2_size = font_size - 10
+        font2 = ImageFont.truetype(primary_font, font2_size)
         text_width2 = draw.textlength(text2, font=font2)
         while text_width2 > final_img.width:
             font_size -= 1
-            font2 = ImageFont.truetype(primary_font, font_size)
+            font2 = ImageFont.truetype(primary_font, font2_size)
             text_width2 = draw.textlength(text2, font=font2)
 
         new_font_size = 30
         font3 = ImageFont.truetype(secondary_font, new_font_size)
         _,t,_,b = draw.textbbox((100,100), text3, font=font3)
-        while (b-t) < (0.8*pyramid_padding_bottom):
+        while (b-t) < (0.4*pyramid_padding_bottom):
             new_font_size += 1
             font3 = ImageFont.truetype(secondary_font, new_font_size)
             _,t,_,b = draw.textbbox((100,100), text3, font=font3)
@@ -404,6 +437,11 @@ class CompanySelector:
             text_width3 = draw.textlength(text3, font=font3)
         _,t,_,b = draw.textbbox((100,100),text3,font=font3)
 
+        font4_size = font2_size - 5
+        font4 = ImageFont.truetype(primary_font, font4_size)
+        text_width4 = draw.textlength(text4, font=font4)
+
+
         start_x1 = (final_img.width - text_width1) // 2
         start_y1 = image_logo.height + logo_padding + 50
 
@@ -412,12 +450,24 @@ class CompanySelector:
 
         start_x3 = (final_img.width - text_width3) // 2
         start_y3 = (final_img.height - pyramid_padding_bottom + ((pyramid_padding_bottom)-(b-t))//2)
+
+        start_x4 = (final_img.width - text_width4) - 150
+        start_y4 = logo_padding + 30 
+
+        start_x5 = 150
+        start_y5 = start_y4
         
         draw.text((start_x1, start_y1), text1, font=font1, fill="black")
         draw.text((start_x2, start_y2), text2, font=font2, fill="black")
-        draw.text((start_x3, start_y3), text3, font=font3, fill=(105,105,105))
+        draw.text((start_x3, start_y3), text3, font=font3, fill=(158,161,162))
+        draw.text((start_x4, start_y4), text4, font=font4, fill="black")
+        if type(text5) == str:
+            draw.text((start_x5, start_y5), text5, font=font4, fill="black")
+        else:
+            for idx, text2write in enumerate(text5):
+                draw.text((start_x5, start_y5 + (idx*69)), text2write, font=font4, fill="black")
 
-        final_img.paste(img, (0, l_height + (overall_height - l_height - img_height) - pyramid_padding_bottom) )
+        final_img.paste(img, ((img_width-pyramid_width)//2, l_height + (overall_height - l_height - img_height) - pyramid_padding_bottom) )
 
         # draw = ImageDraw.Draw(final_img)
         # watermark_text = "FOR INTERNAL USE ONLY"
@@ -431,6 +481,8 @@ class CompanySelector:
         #     )
 
         final_img.save(image_file_path)
+        final_img.show()
+        #img.show()
 
         """if not pyramid_file_path:
                                     return
@@ -438,7 +490,7 @@ class CompanySelector:
                                 with pd.ExcelWriter(pyramid_file_path) as writer:
                                     selected_df.to_excel(writer, index=False)"""
 
-        self.master.quit()
+        #self.master.quit()
 
 if __name__ == "__main__":
     import sentry_sdk
@@ -452,8 +504,8 @@ if __name__ == "__main__":
     )
     root = tk.Tk()
     app = CompanySelector(root)
-    if os.name != "posix":
-        sv_ttk.set_theme("dark")
-    else:
-        sv_ttk.set_theme("dark")
+    sv_ttk.set_theme("dark")
+    if darkdetect.isLight():
+        sv_ttk.set_theme("light")
+
     root.mainloop()
