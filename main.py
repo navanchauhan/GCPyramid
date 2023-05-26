@@ -103,36 +103,84 @@ class CompanySelector:
     def show_companies(self):
         self.select_file_button.pack_forget()
         self.master.geometry("")
+        self.master.resizable(width=False, height=False)
+
+        width=600
+        height=500
+        screenwidth = self.master.winfo_screenwidth()
+        screenheight = self.master.winfo_screenheight()
+        alignstr = '%dx%d+%d+%d' % (width, height, (screenwidth - width) / 2, (screenheight - height) / 2)
+        self.master.geometry(alignstr)
+        self.master.title("UCS Pyramid Builder")
+
 
         self.company_listbox = ScrolledListbox(self.master, selectmode=tk.MULTIPLE, exportselection=False, height=20)
-        self.company_listbox.pack(expand=True)
+        self.company_listbox.place(x=10,y=20,width=235,height=457)
+        #self.company_listbox.pack(expand=True)
 
-        for company in self.df["Symbol"]:
-            self.company_listbox.listbox.insert(tk.END, company)
+        for ticker, company in zip(self.df["Company Name"],self.df["Symbol"]):
+            self.company_listbox.listbox.insert(tk.END, f' {company} - {ticker}')
 
 
         # bind the listbox to an onselect event
         self.company_listbox.listbox.bind('<<ListboxSelect>>', self.onselect)
 
-        self.num_companies_selected_label = ttk.Label(self.master, text="0 companies selected")
-        self.num_companies_selected_label.pack()
+        self.num_companies_selected_label = ttk.Label(self.master, text="0", font='SunValleyBodyStrongFont 18 bold')
+        self.num_companies_selected_label.place(x=315,y=320,width=30,height=30)
+
+        self.companies_label = ttk.Label(self.master, text="Companies Selected", font='SunValleyBodyStrongFont 18')
+        self.companies_label.place(x=340,y=320,width=200, height=30)
 
         self.pyramid_title_string = tk.StringVar()
         self.pyramid_title_string.set("Copyright (2004-2023) by Gentry Capital Corporation")
 
-        self.pyramid_title =  ttk.Entry(self.master, textvariable=self.pyramid_title_string)
-        self.pyramid_title.pack()
+        #self.pyramid_title =  ttk.Entry(self.master, textvariable=self.pyramid_title_string)
+        #self.pyramid_title.pack()
 
-        self.create_pyramid_button = ttk.Button(self.master, text="Create Pyramid", command=self.create_pyramid)
-        self.create_pyramid_button.pack()
+        self.customization_label = ttk.Label(self.master, text="Customization", font='SunValleyBodyStrongFont 12 bold')
+        self.customization_label.place(x=250, y=20, width=100, height=20)
+
+        self.options_label = ttk.Label(self.master, text="Options", font='SunValleyBodyStrongFont 12 bold')
+        self.options_label.place(x=250, y=150, width=100, height=20)
+
+        self.prepared_for_string = tk.StringVar()
+        self.prepared_for_entry = ttk.Entry(self.master, textvariable=self.prepared_for_string)
+        self.prepared_for_entry.place(x=380,y=50,width=195,height=30)
+
+        self.prepared_for_label = ttk.Label(self.master, text="Prepared For")
+        self.prepared_for_label.place(x=250,y=50,width=132,height=30)
+
+        self.advisor_string = tk.StringVar()
+        self.advisor_entry = ttk.Entry(self.master, textvariable=self.advisor_string)
+        self.advisor_entry.place(x=380,y=90,width=195,height=30)
+        self.advisor_label = ttk.Label(self.master, text="Advisor")
+        self.advisor_label.place(x=250,y=90,width=132,height=30)
+
+        self.generate_pyramid_var = tk.IntVar()
+        self.generate_pyramid_var.set(1)
+        self.generate_pyramid_checkbx = ttk.Checkbutton(self.master, text="Generate Pyramid Image", onvalue=1, offvalue=0, variable=self.generate_pyramid_var)
+        self.generate_pyramid_checkbx.place(x=250,y=180, width=329, height=30)
+
+        self.generate_word_doc = tk.IntVar()
+        self.generate_word_doc.set(0)
+        self.generate_word_doc_checkbx = ttk.Checkbutton(self.master, text="Generate Description Document", onvalue=1, offvalue=0, variable=self.generate_word_doc)
+        self.generate_word_doc_checkbx.place(x=250,y=220, width=329, height=30)
+
+        self.create_pyramid_button = ttk.Button(self.master, text="Create", command=self.create_pyramid)
+        #self.create_pyramid_button.pack()
+        self.create_pyramid_button.place(x=250,y=450,width=150,height=30)
+
+        self.reset_button = ttk.Button(self.master, text="Reset", command=self.create_pyramid)
+        self.reset_button.place(x=250+150+25, y=450, width=150, height=30)
 
     def onselect(self, evt):
         w = evt.widget
         num_selected = len(w.curselection())
-        self.num_companies_selected_label.config(text=f"{num_selected} companies selected")
+        self.num_companies_selected_label.config(text=f"{num_selected}")
 
     def create_pyramid(self):
-        selected_companies = [self.company_listbox.listbox.get(index) for index in self.company_listbox.listbox.curselection()]
+        selected_companies_tmp = [self.company_listbox.listbox.get(index) for index in self.company_listbox.listbox.curselection()]
+        selected_companies = [x.split(" - ")[0] for x in selected_companies_tmp]
         selected_df = self.df[self.df["Symbol"].isin(selected_companies)].sort_values(by="Weighting", ascending=False)
         #pyramid_file_path = asksaveasfilename(defaultextension=".xlsx", filetypes=[("Excel files", "*.xlsx *.xls")])
 
