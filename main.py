@@ -10,6 +10,7 @@ import sv_ttk
 import darkdetect
 
 import os
+from os import path
 
 canadian_companies = []
 
@@ -240,8 +241,9 @@ class CompanySelector:
         logo_padding = 100 # top padding for logo
         pyramid_padding_bottom = 350 # bottom padding for pyramid
         max_companies_in_row = 5
-        primary_font = "assets/baskerville.ttf"
-        secondary_font = "assets/gill_sans_bold.ttf"
+        base_path = "assets"
+        primary_font = path.join(base_path, "baskerville.ttf")
+        secondary_font = path.join(base_path, "gill_sans_bold.ttf")
 
         # Group the companies by their scores
         pyramid = {}
