@@ -75,10 +75,10 @@ def pyramid_list(lst, sort_canadian=True):
                         print(f'Shifting {company_to_add}')
                 if company_to_add is not None:
                     pyramid[-1].pop(company_idx)
-                    pyramid[-2].append(company_to_add)
-    
+                    pyramid[-2].append(company_to_add)               
+
     for _ in range(4):
-        if len(pyramid) > 3:
+        if len(pyramid) > 2:
             if len(pyramid[-1]) < len(pyramid[-2]):
                 pyramid[-3].append(pyramid[-2][-1])
                 pyramid[-2].pop(-1)
@@ -235,13 +235,13 @@ class CompanySelector:
         dividend_color = block_color #(1,50,32)  # Green color
         font_color = (255, 255, 255)  # White color
         normal_block = (3, 37, 126) # Dark Blue  
-        padding = 10  # Padding around blocks
+        padding = 15  # Padding around blocks
         radius = 10 
         logo_padding = 100 # top padding for logo
         pyramid_padding_bottom = 350 # bottom padding for pyramid
         max_companies_in_row = 5
-        primary_font = "./assets/baskerville.ttf"
-        secondary_font = "./assets/gill_sans_bold.ttf"
+        primary_font = "assets/baskerville.ttf"
+        secondary_font = "assets/gill_sans_bold.ttf"
 
         # Group the companies by their scores
         pyramid = {}
