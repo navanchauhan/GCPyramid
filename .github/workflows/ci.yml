@@ -28,8 +28,8 @@ jobs:
       - name: Package for Windows
         run: |
           pip install -r requirements.txt
-          pyinstaller --add-data "assets;assets" --onefile -c --noconfirm --collect-data sv_ttk --splash assets/GentryCapitalRGB.jpg main.py
+          pyinstaller --add-data "assets;assets" -c --noconfirm --collect-data sv_ttk --splash assets/GentryCapitalRGB.jpg main.py
       - uses: actions/upload-artifact@v3
         with:
           name: pyramid-scheme
-          path: *
+          path: dist/
