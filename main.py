@@ -12,6 +12,10 @@ import darkdetect
 import os
 from os import path
 
+from docx import Document
+from docx.shared import Inches
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+
 canadian_companies = []
 
 def pyramid_list(lst, sort_canadian=True):
@@ -198,301 +202,342 @@ class CompanySelector:
 
     def create_pyramid(self):
         selected_companies_tmp = [self.company_listbox.listbox.get(index) for index in self.company_listbox.listbox.curselection()]
+        print(f'Selected {len(selected_companies_tmp)} companies')
         selected_companies = [x.split(" - ")[0].strip() for x in selected_companies_tmp]
+        print(f'Symbols: {len(selected_companies)}')
         selected_df = self.df[self.df["Symbol"].isin(selected_companies)].sort_values(by="Weighting", ascending=False)
+        print(f'DF: {len(selected_df)}')
         #pyramid_file_path = asksaveasfilename(defaultextension=".xlsx", filetypes=[("Excel files", "*.xlsx *.xls")])
 
+        if self.generate_word_doc.get() == 1:
+            word_file_path = asksaveasfilename(defaultextension=".docx", filetypes=[("Word files", "*.docx")])
 
+            if not word_file_path:
+                return
 
-        image_file_path = asksaveasfilename(defaultextension=".png", filetypes=[("Image files","*.png")])
+            document = Document("assets/doc_template.docx")
 
-        company_scores = {}
-
-        # For each 'Company Name', company_scores[company] = 'Weighting' for that company
-        for company, ticker, weighting, dividend, currency in zip(selected_df["Company Name"], selected_df["Symbol"], selected_df["Weighting"], selected_df["Dividend?"], selected_df["Currency"]):
-            extra_char = ""
-            if dividend.strip() == "Y":
-                extra_char = "*"
-            if currency == "CAD":
-                canadian_companies.append(f'{company} ({ticker}){extra_char}')
-            company_scores[f'{company} ({ticker}){extra_char}'] = weighting
-
-        from PIL import Image, ImageDraw, ImageFont
-        import math
-        # Sort the dictionary by score in ascending order
-        company_scores = {k: v for k, v in sorted(company_scores.items(), key=lambda item: item[1])}
-
-        # Group the companies by their scores
-        pyramid = {i: [] for i in range(1, 7)}
-        for company, score in company_scores.items():
-            pyramid[score].append(company)
-
-        # Initialize some parameters
-        img_width = 3300
-        pyramid_width = 3000
-        img_height = 1550 #2550
-        overall_height = 2550
-        block_color = (3, 37, 126)  # Blue color
-        dividend_color = block_color #(1,50,32)  # Green color
-        font_color = (255, 255, 255)  # White color
-        normal_block = (3, 37, 126) # Dark Blue  
-        padding = 15  # Padding around blocks
-        radius = 10 
-        logo_padding = 100 # top padding for logo
-        pyramid_padding_bottom = 350 # bottom padding for pyramid
-        max_companies_in_row = 5
-        base_path = "assets"
-        primary_font = path.join(base_path, "baskerville.ttf")
-        secondary_font = path.join(base_path, "gill_sans_bold.ttf")
-
-        # Group the companies by their scores
-        pyramid = {}
-        for company, score in company_scores.items():
-            if score not in pyramid:
-                pyramid[score] = []
-            pyramid[score].append(company)
-
-        # Sort the pyramid keys in ascending order to have a pyramid shape
-        sorted_keys = sorted(pyramid.keys())
-
-        companies = []
-
-
-        for key in sorted_keys:
-            if pyramid[key] == []:
-                continue
-            if len(pyramid[key])<=max_companies_in_row:
-                companies.append(pyramid[key])
-            else:
-                temp_list = []
-                for x in range(len(pyramid[key])//max_companies_in_row):
-                    temp_list.append(pyramid[key][x*max_companies_in_row:max_companies_in_row])
-
-                temp_list.append(pyramid[key][::-1][:len(pyramid[key])%max_companies_in_row])
-                for row in temp_list[::-1]:
-                    if row != []:
-                        companies.append(row)
-
-        everything_list = []
-        for row in companies:
-            if row == []:
-                continue
-            for company in row:
-                everything_list.append(company)
-
-        companies = everything_list
-
-        companies = pyramid_list(companies)
-
-        for company_row in companies:
-            print(company_row)
-
-        # Calculate the maximum number of companies in a group (this will be the width of your pyramid)
-        max_companies = max(len(row) for row in companies) #max(len(v) for v in pyramid.values())
-
-        # Calculate the total number of groups (the height of your pyramid)
-        total_groups = len(companies) #len(pyramid)
-
-        # Calculate the size of each block based on the width and height of the image and the number of blocks
-        block_size = min((pyramid_width - padding) // max_companies - padding, (img_height - padding) // total_groups - padding)
-
-        # Calculate the size of each block based on the width and height of the image and the number of blocks
-        block_width = (pyramid_width - padding) // max_companies - padding
-        block_height = (img_height - padding) // total_groups - padding
-
-        # Calculate the total width and height of the blocks (including padding)
-        total_width = max_companies * (block_width + padding)
-        total_height = total_groups * (block_height + padding)
-
-        # Calculate the starting position for the first block
-        start_x = (pyramid_width - total_width) // 2
-        start_y = (img_height - total_height) // 2
-
-
-        # Create an image big enough to hold the pyramid
-        img = Image.new('RGB', (pyramid_width, img_height), "white")
-        d = ImageDraw.Draw(img)
-
-        def wrap_text(text, max_length):
-            words = text.split()
-            lines = []
-            current_line = []
-
-            for word in words:
-                if len(' '.join(current_line + [word])) <= max_length:
-                    current_line.append(word)
-                else:
-                    lines.append(' '.join(current_line))
-                    current_line = [word]
-            lines.append(' '.join(current_line))
-            
-            return '\n'.join(lines)
-
-        min_font_size = 100_000_000
-
-        for i, row in enumerate(companies):
-            for j, company in enumerate(row):
-                font_size = min(block_width // (len(company) // 2 + 1), block_height // 2)
-                if font_size < min_font_size:
-                    min_font_size = font_size
-
-        num_dividends = 0
-
-        # Loop over each level of the pyramid
-        for i, row in enumerate(companies):
-            for j, company in enumerate(row):
-                # Calculate the position of the block
-                x = start_x + j * (block_width + padding) + (max_companies - len(row)) * (block_width + padding) // 2
-                y = start_y + i * (block_size + padding)
-
-                # Calculate the color of the block
-                if company[-1] == "*":
-                    block_color = dividend_color
-                    num_dividends += 1
-                else:
-                    block_color = normal_block
-
-                # Draw the block
-                d.rounded_rectangle([x, y, x + block_width, y + block_height], fill=block_color, radius=radius)
-
-                # Adjust font size based on the length of the company name and block size
-                font_size = min_font_size #min(block_width // (len(company) // 2 + 1), block_height // 2)
-                fnt = ImageFont.truetype(secondary_font, font_size)
-
-                # Implement word wrap for the company name
-                wrapped_company = wrap_text(company, (block_width // font_size)*1.5)
-
-                # Draw the company name
-                bbox = d.textbbox((x, y), wrapped_company, font=fnt)
-                text_width = bbox[2] - bbox[0]
-                text_height = bbox[3] - bbox[1]
-                text_x = x + (block_width - text_width) // 2
-                text_y = y + (block_height - text_height) // 2
-                d.text((text_x, text_y), wrapped_company, font=fnt, fill=font_color, align='center', spacing=10)
-
-
-        print(image_file_path)
-
-        # Save the image
-        if not image_file_path:
-            return
-
-        image_logo = Image.open("./assets/GentryCapitalRGB.jpg")
-        _, l_height = image_logo.size
-
-        new_img = Image.new("RGB", (img_width, l_height), "white")
-        left = (new_img.width - image_logo.width) // 2
-        top = (new_img.height - image_logo.height) // 2
-
-        new_img.paste(image_logo, (left, top))
-
-        final_img = Image.new("RGB", (img_width, overall_height), "white")
-        final_img.paste(new_img, (0, logo_padding))
-
-        text1 = self.pyramid_title_string.get()
-        text2 = f"({num_dividends} Dividend payors - all identified by asterisk)"
-        text3 = "FOR INTERNAL USE ONLY"
-        text4 = datetime.today().strftime("%B %d, %Y")
-        text5 = ""
-
-        if self.prepared_for_string.get() != "":
-            print(f"Prepared for string present - {self.prepared_for_string.get()}")
-            text5 += f"Prepared for {self.prepared_for_string.get()}"
-        if self.advisor_string.get() != "":
             advisor = self.advisor_string.get()
-            if text5 != "":
-                tmp_var = [text5, f"By {advisor}"]
-                text5 = tmp_var
-            else:
-                text5 = f"By {advisor}"
+            today = datetime.today()
 
-        print(text5)
-        draw = ImageDraw.Draw(final_img)
-        font_size = 60
+            document.paragraphs[0].text = document.paragraphs[0].text.replace("{{ADVISOR}}", advisor)
 
-        font1 = ImageFont.truetype(primary_font, font_size)
-        text_width1 = draw.textlength(text1, font=font1)
-        while text_width1 > final_img.width:
-            font_size -= 1
+            to_replace = document.paragraphs[3].text
+
+            to_replace = to_replace.replace("{{MONTH}}" , today.strftime("%B"))
+            to_replace = to_replace.replace("{{YEAR}}" , today.strftime("%Y"))
+
+            document.paragraphs[3].text = to_replace
+
+            for company, ticker, dividend, currency, desc in zip(selected_df["Company Name"], selected_df["Symbol"], selected_df["Dividend?"], selected_df["Currency"], selected_df["Blurb"]):
+                extra_char = ""
+                if dividend.strip() == "Y":
+                    extra_char = "***"
+
+                new_paragraph = document.add_paragraph()
+                temp_run = new_paragraph.add_run(f'{company}{extra_char} ({ticker})')
+                temp_run.bold = True
+                new_paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
+                document.paragraphs.pop()
+                desc_paragraph = document.add_paragraph(f"\n{desc}\n")
+                desc_paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+                desc_paragraph.bold = False
+
+            document.save(word_file_path)
+
+        if self.generate_pyramid_var.get() == 0:
+            None
+        else: 
+            image_file_path = asksaveasfilename(defaultextension=".png", filetypes=[("Image files","*.png")])
+
+            company_scores = {}
+
+            # For each 'Company Name', company_scores[company] = 'Weighting' for that company
+            for company, ticker, weighting, dividend, currency in zip(selected_df["Company Name"], selected_df["Symbol"], selected_df["Weighting"], selected_df["Dividend?"], selected_df["Currency"]):
+                extra_char = ""
+                if dividend.strip() == "Y":
+                    extra_char = "*"
+                if currency == "CAD":
+                    canadian_companies.append(f'{company} ({ticker}){extra_char}')
+                company_scores[f'{company} ({ticker}){extra_char}'] = weighting
+
+            from PIL import Image, ImageDraw, ImageFont
+            import math
+            # Sort the dictionary by score in ascending order
+            company_scores = {k: v for k, v in sorted(company_scores.items(), key=lambda item: item[1])}
+
+            # Group the companies by their scores
+            pyramid = {i: [] for i in range(1, 7)}
+            for company, score in company_scores.items():
+                pyramid[score].append(company)
+
+            # Initialize some parameters
+            img_width = 3300
+            pyramid_width = 3000
+            img_height = 1550 #2550
+            overall_height = 2550
+            block_color = (3, 37, 126)  # Blue color
+            dividend_color = block_color #(1,50,32)  # Green color
+            font_color = (255, 255, 255)  # White color
+            normal_block = (3, 37, 126) # Dark Blue  
+            padding = 15  # Padding around blocks
+            radius = 10 
+            logo_padding = 100 # top padding for logo
+            pyramid_padding_bottom = 350 # bottom padding for pyramid
+            max_companies_in_row = 10
+            base_path = "assets"
+            primary_font = path.join(base_path, "baskerville.ttf")
+            secondary_font = path.join(base_path, "gill_sans_bold.ttf")
+
+            # Group the companies by their scores
+            pyramid = {}
+            for company, score in company_scores.items():
+                if score not in pyramid:
+                    pyramid[score] = []
+                pyramid[score].append(company)
+
+            # Sort the pyramid keys in ascending order to have a pyramid shape
+            sorted_keys = sorted(pyramid.keys())
+
+            companies = []
+
+
+            for key in sorted_keys:
+                if pyramid[key] == []:
+                    continue
+                if len(pyramid[key])<=max_companies_in_row:
+                    companies.append(pyramid[key])
+                else:
+                    temp_list = []
+                    for x in range(len(pyramid[key])//max_companies_in_row):
+                        temp_list.append(pyramid[key][x*max_companies_in_row:max_companies_in_row])
+
+                    temp_list.append(pyramid[key][::-1][:len(pyramid[key])%max_companies_in_row])
+                    for row in temp_list[::-1]:
+                        if row != []:
+                            companies.append(row)
+
+            everything_list = []
+            for row in companies:
+                if row == []:
+                    continue
+                for company in row:
+                    everything_list.append(company)
+
+            companies = everything_list
+            print(f"Still have {len(companies)}")
+
+            companies = pyramid_list(companies)
+
+            for company_row in companies:
+                print(company_row)
+
+            # Calculate the maximum number of companies in a group (this will be the width of your pyramid)
+            max_companies = max(len(row) for row in companies) #max(len(v) for v in pyramid.values())
+
+            # Calculate the total number of groups (the height of your pyramid)
+            total_groups = len(companies) #len(pyramid)
+
+            # Calculate the size of each block based on the width and height of the image and the number of blocks
+            block_size = min((pyramid_width - padding) // max_companies - padding, (img_height - padding) // total_groups - padding)
+
+            # Calculate the size of each block based on the width and height of the image and the number of blocks
+            block_width = (pyramid_width - padding) // max_companies - padding
+            block_height = (img_height - padding) // total_groups - padding
+
+            # Calculate the total width and height of the blocks (including padding)
+            total_width = max_companies * (block_width + padding)
+            total_height = total_groups * (block_height + padding)
+
+            # Calculate the starting position for the first block
+            start_x = (pyramid_width - total_width) // 2
+            start_y = (img_height - total_height) // 2
+
+
+            # Create an image big enough to hold the pyramid
+            img = Image.new('RGB', (pyramid_width, img_height), "white")
+            d = ImageDraw.Draw(img)
+
+            def wrap_text(text, max_length):
+                words = text.split()
+                lines = []
+                current_line = []
+
+                for word in words:
+                    if len(' '.join(current_line + [word])) <= max_length:
+                        current_line.append(word)
+                    else:
+                        lines.append(' '.join(current_line))
+                        current_line = [word]
+                lines.append(' '.join(current_line))
+                
+                return '\n'.join(lines)
+
+            min_font_size = 100_000_000
+
+            for i, row in enumerate(companies):
+                for j, company in enumerate(row):
+                    font_size = min(block_width // (len(company) // 2 + 1), block_height // 2)
+                    if font_size < min_font_size:
+                        min_font_size = font_size
+
+            num_dividends = 0
+
+            # Loop over each level of the pyramid
+            for i, row in enumerate(companies):
+                for j, company in enumerate(row):
+                    # Calculate the position of the block
+                    x = start_x + j * (block_width + padding) + (max_companies - len(row)) * (block_width + padding) // 2
+                    y = start_y + i * (block_size + padding)
+
+                    # Calculate the color of the block
+                    if company[-1] == "*":
+                        block_color = dividend_color
+                        num_dividends += 1
+                    else:
+                        block_color = normal_block
+
+                    # Draw the block
+                    d.rounded_rectangle([x, y, x + block_width, y + block_height], fill=block_color, radius=radius)
+
+                    # Adjust font size based on the length of the company name and block size
+                    font_size = min_font_size #min(block_width // (len(company) // 2 + 1), block_height // 2)
+                    fnt = ImageFont.truetype(secondary_font, font_size)
+
+                    # Implement word wrap for the company name
+                    wrapped_company = wrap_text(company, (block_width // font_size)*1.5)
+
+                    # Draw the company name
+                    bbox = d.textbbox((x, y), wrapped_company, font=fnt)
+                    text_width = bbox[2] - bbox[0]
+                    text_height = bbox[3] - bbox[1]
+                    text_x = x + (block_width - text_width) // 2
+                    text_y = y + (block_height - text_height) // 2
+                    d.text((text_x, text_y), wrapped_company, font=fnt, fill=font_color, align='center', spacing=10)
+
+
+            print(image_file_path)
+
+            # Save the image
+            if not image_file_path:
+                return
+
+            image_logo = Image.open("./assets/GentryCapitalRGB.jpg")
+            _, l_height = image_logo.size
+
+            new_img = Image.new("RGB", (img_width, l_height), "white")
+            left = (new_img.width - image_logo.width) // 2
+            top = (new_img.height - image_logo.height) // 2
+
+            new_img.paste(image_logo, (left, top))
+
+            final_img = Image.new("RGB", (img_width, overall_height), "white")
+            final_img.paste(new_img, (0, logo_padding))
+
+            text1 = self.pyramid_title_string.get()
+            text2 = f"({num_dividends} Dividend payors - all identified by asterisk)"
+            text3 = "FOR INTERNAL USE ONLY"
+            text4 = datetime.today().strftime("%B %d, %Y")
+            text5 = ""
+
+            if self.prepared_for_string.get() != "":
+                print(f"Prepared for string present - {self.prepared_for_string.get()}")
+                text5 += f"Prepared for {self.prepared_for_string.get()}"
+            if self.advisor_string.get() != "":
+                advisor = self.advisor_string.get()
+                if text5 != "":
+                    tmp_var = [text5, f"By {advisor}"]
+                    text5 = tmp_var
+                else:
+                    text5 = f"By {advisor}"
+
+            print(text5)
+            draw = ImageDraw.Draw(final_img)
+            font_size = 60
+
             font1 = ImageFont.truetype(primary_font, font_size)
             text_width1 = draw.textlength(text1, font=font1)
+            while text_width1 > final_img.width:
+                font_size -= 1
+                font1 = ImageFont.truetype(primary_font, font_size)
+                text_width1 = draw.textlength(text1, font=font1)
 
-        font2_size = font_size - 10
-        font2 = ImageFont.truetype(primary_font, font2_size)
-        text_width2 = draw.textlength(text2, font=font2)
-        while text_width2 > final_img.width:
-            font_size -= 1
+            font2_size = font_size - 10
             font2 = ImageFont.truetype(primary_font, font2_size)
             text_width2 = draw.textlength(text2, font=font2)
+            while text_width2 > final_img.width:
+                font_size -= 1
+                font2 = ImageFont.truetype(primary_font, font2_size)
+                text_width2 = draw.textlength(text2, font=font2)
 
-        new_font_size = 30
-        font3 = ImageFont.truetype(secondary_font, new_font_size)
-        _,t,_,b = draw.textbbox((100,100), text3, font=font3)
-        while (b-t) < (0.4*pyramid_padding_bottom):
-            new_font_size += 1
+            new_font_size = 30
             font3 = ImageFont.truetype(secondary_font, new_font_size)
             _,t,_,b = draw.textbbox((100,100), text3, font=font3)
-        text_width3 = draw.textlength(text3, font=font3)
-        while text_width3 > (final_img.width*0.8):
-            new_font_size -= 1
-            font3 = ImageFont.truetype(secondary_font, new_font_size)
+            while (b-t) < (0.4*pyramid_padding_bottom):
+                new_font_size += 1
+                font3 = ImageFont.truetype(secondary_font, new_font_size)
+                _,t,_,b = draw.textbbox((100,100), text3, font=font3)
             text_width3 = draw.textlength(text3, font=font3)
-        _,t,_,b = draw.textbbox((100,100),text3,font=font3)
+            while text_width3 > (final_img.width*0.8):
+                new_font_size -= 1
+                font3 = ImageFont.truetype(secondary_font, new_font_size)
+                text_width3 = draw.textlength(text3, font=font3)
+            _,t,_,b = draw.textbbox((100,100),text3,font=font3)
 
-        font4_size = font2_size - 5
-        font4 = ImageFont.truetype(primary_font, font4_size)
-        text_width4 = draw.textlength(text4, font=font4)
+            font4_size = font2_size - 5
+            font4 = ImageFont.truetype(primary_font, font4_size)
+            text_width4 = draw.textlength(text4, font=font4)
 
 
-        start_x1 = (final_img.width - text_width1) // 2
-        start_y1 = image_logo.height + logo_padding + 50
+            start_x1 = (final_img.width - text_width1) // 2
+            start_y1 = image_logo.height + logo_padding + 50
 
-        start_x2 = (final_img.width - text_width2) // 2
-        start_y2 = image_logo.height + logo_padding + 125
+            start_x2 = (final_img.width - text_width2) // 2
+            start_y2 = image_logo.height + logo_padding + 125
 
-        start_x3 = (final_img.width - text_width3) // 2
-        start_y3 = (final_img.height - pyramid_padding_bottom + ((pyramid_padding_bottom)-(b-t))//2)
+            start_x3 = (final_img.width - text_width3) // 2
+            start_y3 = (final_img.height - pyramid_padding_bottom + ((pyramid_padding_bottom)-(b-t))//2)
 
-        start_x4 = (final_img.width - text_width4) - 150
-        start_y4 = logo_padding + 30 
+            start_x4 = (final_img.width - text_width4) - 150
+            start_y4 = logo_padding + 30 
 
-        start_x5 = 150
-        start_y5 = start_y4
-        
-        draw.text((start_x1, start_y1), text1, font=font1, fill="black")
-        draw.text((start_x2, start_y2), text2, font=font2, fill="black")
-        draw.text((start_x3, start_y3), text3, font=font3, fill=(158,161,162))
-        draw.text((start_x4, start_y4), text4, font=font4, fill="black")
-        if type(text5) == str:
-            draw.text((start_x5, start_y5), text5, font=font4, fill="black")
-        else:
-            for idx, text2write in enumerate(text5):
-                draw.text((start_x5, start_y5 + (idx*69)), text2write, font=font4, fill="black")
+            start_x5 = 150
+            start_y5 = start_y4
+            
+            draw.text((start_x1, start_y1), text1, font=font1, fill="black")
+            draw.text((start_x2, start_y2), text2, font=font2, fill="black")
+            draw.text((start_x3, start_y3), text3, font=font3, fill=(158,161,162))
+            draw.text((start_x4, start_y4), text4, font=font4, fill="black")
+            if type(text5) == str:
+                draw.text((start_x5, start_y5), text5, font=font4, fill="black")
+            else:
+                for idx, text2write in enumerate(text5):
+                    draw.text((start_x5, start_y5 + (idx*69)), text2write, font=font4, fill="black")
 
-        final_img.paste(img, ((img_width-pyramid_width)//2, l_height + (overall_height - l_height - img_height) - pyramid_padding_bottom) )
+            final_img.paste(img, ((img_width-pyramid_width)//2, l_height + (overall_height - l_height - img_height) - pyramid_padding_bottom) )
 
-        # draw = ImageDraw.Draw(final_img)
-        # watermark_text = "FOR INTERNAL USE ONLY"
-        # watermark_font = ImageFont.truetype(secondary_font, 72)
-        # watermark_width = draw.textlength(watermark_text, watermark_font)
-        # draw.text(
-        #     ((final_img.width - watermark_width)//2,overall_height-pyramid_padding_bottom),
-        #     watermark_text,
-        #     font=watermark_font,
-        #     align='center'
-        #     )
+            # draw = ImageDraw.Draw(final_img)
+            # watermark_text = "FOR INTERNAL USE ONLY"
+            # watermark_font = ImageFont.truetype(secondary_font, 72)
+            # watermark_width = draw.textlength(watermark_text, watermark_font)
+            # draw.text(
+            #     ((final_img.width - watermark_width)//2,overall_height-pyramid_padding_bottom),
+            #     watermark_text,
+            #     font=watermark_font,
+            #     align='center'
+            #     )
 
-        final_img.save(image_file_path)
-        final_img.show()
-        #img.show()
+            final_img.save(image_file_path)
+            final_img.show()
+            #img.show()
 
-        """if not pyramid_file_path:
-                                    return
-                        
-                                with pd.ExcelWriter(pyramid_file_path) as writer:
-                                    selected_df.to_excel(writer, index=False)"""
+            """if not pyramid_file_path:
+                                        return
+                            
+                                    with pd.ExcelWriter(pyramid_file_path) as writer:
+                                        selected_df.to_excel(writer, index=False)"""
 
-        #self.master.quit()
+            #self.master.quit()
 
 if __name__ == "__main__":
     import sentry_sdk
