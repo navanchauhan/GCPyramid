@@ -7,6 +7,7 @@ et-xmlfile==1.1.0; python_version >= "3.6"
 fonttools==4.39.4; python_version >= "3.8"
 importlib-resources==5.12.0; python_version < "3.10" and python_version >= "3.8"
 kiwisolver==1.4.4; python_version >= "3.8"
+lxml==4.9.2; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.5.0"
 macholib==1.16.2; python_version >= "3.7" and python_version < "3.12" and sys_platform == "darwin"
 matplotlib==3.7.1; python_version >= "3.8"
 numpy==1.24.2
@@ -19,6 +20,7 @@ pyinstaller-hooks-contrib==2023.3; python_version >= "3.7" and python_version < 
 pyinstaller==5.11.0; python_version >= "3.7" and python_version < "3.12"
 pyparsing==3.0.9; python_full_version >= "3.6.8" and python_version >= "3.8"
 python-dateutil==2.8.2; python_version >= "3.8" and python_full_version < "3.0.0" or python_full_version >= "3.3.0" and python_version >= "3.8"
+python-docx==0.8.11
 pytz==2023.3; python_version >= "3.8"
 pywin32-ctypes==0.2.0; python_version >= "3.7" and python_version < "3.12" and sys_platform == "win32"
 sentry-sdk==1.23.1
