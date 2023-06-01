@@ -439,12 +439,12 @@ class CompanySelector:
             text3 = "FOR INTERNAL USE ONLY"
             text4 = datetime.today().strftime("%B %d, %Y")
             text5 = f"{len([self.company_listbox.listbox.get(index) for index in self.company_listbox.listbox.curselection()])}"
-            text6 = f"{len([self.company_listbox.listbox.get(index) for index in self.company_listbox.listbox.curselection()])} Companies"
+            text5 = f"{len([self.company_listbox.listbox.get(index) for index in self.company_listbox.listbox.curselection()])} Companies"
 
             if self.prepared_for_string.get() != "":
                 print(f"Prepared for string present - {self.prepared_for_string.get()}")
                 if text5 != "":
-                    if type(text5 == list):
+                    if type(text5) == list:
                         text5.append(f"Prepared for {self.prepared_for_string.get()}")
                     else:
                         text5 = [text5, f"Prepared for {self.prepared_for_string.get()}"]
