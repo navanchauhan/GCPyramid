@@ -146,13 +146,13 @@ class CompanySelector:
         self.companies_label.place(x=340,y=320,width=200, height=30)
 
         self.pyramid_title_string = tk.StringVar()
-        self.pyramid_title_string.set(f"Copyright (2004-{datetime.today().year}) by Gentry Capital Corporation")
+        self.pyramid_title_string.set(f"Copyright (2004) by Gentry Capital Corporation")
 
         #self.pyramid_title =  ttk.Entry(self.master, textvariable=self.pyramid_title_string)
         #self.pyramid_title.pack()
 
         self.customization_label = ttk.Label(self.master, text="Customization", font='SunValleyBodyStrongFont 12 bold')
-        self.customization_label.place(x=250, y=20, width=100, height=20)
+        self.customization_label.place(x=250, y=20, width=150, height=20)
 
         self.options_label = ttk.Label(self.master, text="Options", font='SunValleyBodyStrongFont 12 bold')
         self.options_label.place(x=250, y=150, width=100, height=20)
@@ -438,16 +438,24 @@ class CompanySelector:
             text2 = f"({num_dividends} Dividend payors - all identified by asterisk)"
             text3 = "FOR INTERNAL USE ONLY"
             text4 = datetime.today().strftime("%B %d, %Y")
-            text5 = ""
+            text5 = f"{len([self.company_listbox.listbox.get(index) for index in self.company_listbox.listbox.curselection()])}"
+            text6 = f"{len([self.company_listbox.listbox.get(index) for index in self.company_listbox.listbox.curselection()])} Companies"
 
             if self.prepared_for_string.get() != "":
                 print(f"Prepared for string present - {self.prepared_for_string.get()}")
-                text5 += f"Prepared for {self.prepared_for_string.get()}"
+                if text5 != "":
+                    if type(text5 == list):
+                        text5.append(f"Prepared for {self.prepared_for_string.get()}")
+                    else:
+                        text5 = [text5, f"Prepared for {self.prepared_for_string.get()}"]
             if self.advisor_string.get() != "":
                 advisor = self.advisor_string.get()
                 if text5 != "":
-                    tmp_var = [text5, f"By {advisor}"]
-                    text5 = tmp_var
+                    if type(text5) == list:
+                        text5.append(f"By {advisor}")
+                    else:
+                        tmp_var = [text5, f"By {advisor}"]
+                        text5 = tmp_var
                 else:
                     text5 = f"By {advisor}"
 

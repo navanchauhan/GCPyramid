@@ -105,6 +105,20 @@ optional = false
 python-versions = ">=3.7"
 
 [[package]]
+name = "lxml"
+version = "4.9.2"
+description = "Powerful and Pythonic XML processing library combining libxml2/libxslt with the ElementTree API."
+category = "main"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, != 3.4.*"
+
+[package.extras]
+cssselect = ["cssselect (>=0.7)"]
+html5 = ["html5lib"]
+htmlsoup = ["beautifulsoup4"]
+source = ["Cython (>=0.29.7)"]
+
+[[package]]
 name = "macholib"
 version = "1.16.2"
 description = "Mach-O header analysis and editing"
@@ -272,6 +286,17 @@ python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,>=2.7"
 
 [package.dependencies]
 six = ">=1.5"
+
+[[package]]
+name = "python-docx"
+version = "0.8.11"
+description = "Create and update Microsoft Word .docx files."
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+lxml = ">=2.3.2"
 
 [[package]]
 name = "pytz"
@@ -454,7 +479,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "flake8 (<5)", "pytest-co
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.9,<3.12"
-content-hash = "ba4a511abe2a32ba16b21a014272059c023a1a675fab76e48f9762c70b536122"
+content-hash = "242394fa63b58fdef34d257fdbf2ca18320dd2168a2c841af4e7fd9dc014afce"
 
 [metadata.files]
 altgraph = []
@@ -466,6 +491,7 @@ et-xmlfile = []
 fonttools = []
 importlib-resources = []
 kiwisolver = []
+lxml = []
 macholib = []
 matplotlib = []
 numpy = []
@@ -478,6 +504,7 @@ pyinstaller = []
 pyinstaller-hooks-contrib = []
 pyparsing = []
 python-dateutil = []
+python-docx = []
 pytz = []
 pywin32-ctypes = []
 sentry-sdk = []

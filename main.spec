@@ -24,10 +24,20 @@ a = Analysis(
     noarchive=False,
 )
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
+splash = Splash(
+    'assets/GentryCapitalRGB.jpg',
+    binaries=a.binaries,
+    datas=a.datas,
+    text_pos=None,
+    text_size=12,
+    minify_script=True,
+    always_on_top=True,
+)
 
 exe = EXE(
     pyz,
     a.scripts,
+    splash,
     [],
     exclude_binaries=True,
     name='main',
@@ -47,6 +57,7 @@ coll = COLLECT(
     a.binaries,
     a.zipfiles,
     a.datas,
+    splash.binaries,
     strip=False,
     upx=True,
     upx_exclude=[],
