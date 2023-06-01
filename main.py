@@ -217,17 +217,14 @@ class CompanySelector:
 
             document = Document("assets/doc_template.docx")
 
-            advisor = self.advisor_string.get()
+            advisor = self.prepared_for_string.get()
             today = datetime.today()
 
-            document.paragraphs[0].text = document.paragraphs[0].text.replace("{{ADVISOR}}", advisor)
+            to_replace = document.paragraphs[1].text
+            to_replace = to_replace.replace("{{ADVISOR}}", advisor)
+            to_replace = to_replace.replace("{{DATE}}" , today.strftime("%B %m, %Y"))
 
-            to_replace = document.paragraphs[3].text
-
-            to_replace = to_replace.replace("{{MONTH}}" , today.strftime("%B"))
-            to_replace = to_replace.replace("{{YEAR}}" , today.strftime("%Y"))
-
-            document.paragraphs[3].text = to_replace
+            document.paragraphs[1].text = to_replace
 
             for company, ticker, dividend, currency, desc in zip(selected_df["Company Name"], selected_df["Symbol"], selected_df["Dividend?"], selected_df["Currency"], selected_df["Blurb"]):
                 extra_char = ""
@@ -240,7 +237,7 @@ class CompanySelector:
                 new_paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
                 document.paragraphs.pop()
                 desc_paragraph = document.add_paragraph(f"\n{desc}\n")
-                desc_paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+                desc_paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
                 desc_paragraph.bold = False
 
             document.save(word_file_path)
