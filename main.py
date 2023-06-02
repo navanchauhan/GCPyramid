@@ -18,6 +18,9 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH
 
 canadian_companies = []
 
+def get_companies_for_word_doc():
+    None
+
 def pyramid_list(lst, sort_canadian=True):
     old_lst = lst
 
@@ -209,6 +212,9 @@ class CompanySelector:
         print(f'DF: {len(selected_df)}')
         #pyramid_file_path = asksaveasfilename(defaultextension=".xlsx", filetypes=[("Excel files", "*.xlsx *.xls")])
 
+        company_blurbs = {
+        }
+
         if self.generate_word_doc.get() == 1:
             word_file_path = asksaveasfilename(defaultextension=".docx", filetypes=[("Word files", "*.docx")])
 
@@ -225,20 +231,81 @@ class CompanySelector:
             to_replace = to_replace.replace("{{DATE}}" , today.strftime("%B %m, %Y"))
 
             document.paragraphs[1].text = to_replace
+            document.paragraphs[1].style.font.name = "Times New Roman"
 
-            for company, ticker, dividend, currency, desc in zip(selected_df["Company Name"], selected_df["Symbol"], selected_df["Dividend?"], selected_df["Currency"], selected_df["Blurb"]):
+            word_company_scores = {}
+
+            for company, ticker, dividend, currency, desc, weighting in zip(selected_df["Company Name"], selected_df["Symbol"], selected_df["Dividend?"], selected_df["Currency"], selected_df["Blurb"], selected_df["Weighting"]):
                 extra_char = ""
                 if dividend.strip() == "Y":
                     extra_char = "***"
+                if currency == "CAD":
+                    canadian_companies.append(f'{company}{extra_char} ({ticker})')
 
-                new_paragraph = document.add_paragraph()
-                temp_run = new_paragraph.add_run(f'{company}{extra_char} ({ticker})')
-                temp_run.bold = True
-                new_paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
-                document.paragraphs.pop()
-                desc_paragraph = document.add_paragraph(f"\n{desc}\n")
-                desc_paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
-                desc_paragraph.bold = False
+                word_company_scores[f'{company}{extra_char} ({ticker})'] = weighting
+                company_blurbs[f'{company}{extra_char} ({ticker})'] = desc
+
+                # new_paragraph = document.add_paragraph()
+                # temp_run = new_paragraph.add_run(f'{company}{extra_char} ({ticker})')
+                # temp_run.bold = True
+                # new_paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
+                # document.paragraphs.pop()
+                # desc_paragraph = document.add_paragraph(f"\n{desc}\n")
+                # desc_paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
+                # desc_paragraph.bold = False
+
+            word_company_scores = {k: v for k, v in sorted(word_company_scores.items(), key=lambda item: item[1])}
+            word_pyramid = {}
+            for company, score in word_company_scores.items():
+                if score not in word_pyramid:
+                    word_pyramid[score] = []
+                word_pyramid[score].append(company)
+
+            sorted_keys = sorted(word_pyramid.keys())
+
+            companies = []
+
+
+            for key in sorted_keys:
+                if word_pyramid[key] == []:
+                    continue
+                if len(word_pyramid[key])<=15:
+                    companies.append(word_pyramid[key])
+                else:
+                    temp_list = []
+                    for x in range(len(word_pyramid[key])//15):
+                        temp_list.append(word_pyramid[key][x*15:15])
+
+                    temp_list.append(word_pyramid[key][::-1][:len(word_pyramid[key])%15])
+                    for row in temp_list[::-1]:
+                        if row != []:
+                            companies.append(row)
+
+            everything_list = []
+            for row in companies:
+                if row == []:
+                    continue
+                for company in row:
+                    everything_list.append(company)
+
+            companies = everything_list
+
+            companies = pyramid_list(companies)
+
+            everything_list = []
+
+            for row in companies:
+                for company in row:
+                    new_paragraph = document.add_paragraph()
+                    temp_run = new_paragraph.add_run(company)
+                    temp_run.bold = True
+                    temp_run.font.name = "Times New Roman"
+                    new_paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
+                    document.paragraphs.pop()
+                    desc_paragraph = document.add_paragraph(f"\n{company_blurbs[company]}\n\n\n")
+                    desc_paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
+                    desc_paragraph.bold = False
+                    desc_paragraph.style.font.name = "Times New Roman"
 
             document.save(word_file_path)
 
@@ -435,8 +502,8 @@ class CompanySelector:
             text2 = f"({num_dividends} Dividend payors - all identified by asterisk)"
             text3 = "FOR INTERNAL USE ONLY"
             text4 = datetime.today().strftime("%B %d, %Y")
-            text5 = f"{len([self.company_listbox.listbox.get(index) for index in self.company_listbox.listbox.curselection()])}"
-            text5 = f"{len([self.company_listbox.listbox.get(index) for index in self.company_listbox.listbox.curselection()])} Companies"
+            #text5 = f"{len([self.company_listbox.listbox.get(index) for index in self.company_listbox.listbox.curselection()])}"
+            text5 = f"Number of positions: {len([self.company_listbox.listbox.get(index) for index in self.company_listbox.listbox.curselection()])}"
 
             if self.prepared_for_string.get() != "":
                 print(f"Prepared for string present - {self.prepared_for_string.get()}")
@@ -521,28 +588,10 @@ class CompanySelector:
 
             final_img.paste(img, ((img_width-pyramid_width)//2, l_height + (overall_height - l_height - img_height) - pyramid_padding_bottom) )
 
-            # draw = ImageDraw.Draw(final_img)
-            # watermark_text = "FOR INTERNAL USE ONLY"
-            # watermark_font = ImageFont.truetype(secondary_font, 72)
-            # watermark_width = draw.textlength(watermark_text, watermark_font)
-            # draw.text(
-            #     ((final_img.width - watermark_width)//2,overall_height-pyramid_padding_bottom),
-            #     watermark_text,
-            #     font=watermark_font,
-            #     align='center'
-            #     )
-
             final_img.save(image_file_path)
             final_img.show()
             #img.show()
 
-            """if not pyramid_file_path:
-                                        return
-                            
-                                    with pd.ExcelWriter(pyramid_file_path) as writer:
-                                        selected_df.to_excel(writer, index=False)"""
-
-            #self.master.quit()
 
 if __name__ == "__main__":
     import sentry_sdk
@@ -555,6 +604,7 @@ if __name__ == "__main__":
         traces_sample_rate=1.0
     )
     root = tk.Tk()
+    print(os.listdir())
     app = CompanySelector(root)
     sv_ttk.set_theme("dark")
     if darkdetect.isLight():
