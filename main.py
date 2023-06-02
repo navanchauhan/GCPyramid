@@ -10,6 +10,8 @@ import sv_ttk
 import darkdetect
 
 import os
+import sys
+
 from os import path
 
 from docx import Document
@@ -604,6 +606,11 @@ if __name__ == "__main__":
         traces_sample_rate=1.0
     )
     root = tk.Tk()
+    wd = os.getcwd()
+    try:
+        os.chdir(sys._MEIPASS)
+    except AttributeError:
+        os.chdir(wd)
     print(os.listdir())
     app = CompanySelector(root)
     sv_ttk.set_theme("dark")
