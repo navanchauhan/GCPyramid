@@ -18,7 +18,15 @@ from docx import Document
 from docx.shared import Inches
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 
+from platformdirs import user_data_dir
+from pathlib import Path
+
 canadian_companies = []
+
+# Config
+appname = "PyramidScheme"
+appauthor = "Navan Chauhan"
+Path(user_data_dir(appname, appauthor)).mkdir( parents=True, exist_ok=True )
 
 def get_companies_for_word_doc():
     None
@@ -109,11 +117,25 @@ class CompanySelector:
         self.select_file_button = ttk.Button(self.master, text="Select Excel File", command=self.load_file)
         self.select_file_button.pack(pady=250)
 
+        try:
+            with open(path.join(user_data_dir(appname, appauthor), "default.txt")) as f:
+                try:
+                    self.df = pd.read_excel(f.read())
+                    self.df = self.df[self.df['Company Name'].notna()]
+                    self.df = self.df[self.df['Symbol'].notna()]
+                    self.show_companies()
+                except Exception as e:
+                    print(f'Oh No {e}')
+        except FileNotFoundError:
+            None
+
     def load_file(self):
         file_path = askopenfilename(filetypes=[("Excel files", "*.xlsx *.xls")])
         if not file_path:
             return
 
+        with open(path.join(user_data_dir(appname, appauthor), "default.txt"), "w") as f:
+            f.write(file_path)
         self.df = pd.read_excel(file_path)
         self.df = self.df[self.df['Company Name'].notna()]
         self.df = self.df[self.df['Symbol'].notna()]

@@ -239,6 +239,18 @@ docs = ["furo", "olefile", "sphinx (>=2.4)", "sphinx-copybutton", "sphinx-inline
 tests = ["check-manifest", "coverage", "defusedxml", "markdown2", "olefile", "packaging", "pyroma", "pytest", "pytest-cov", "pytest-timeout"]
 
 [[package]]
+name = "platformdirs"
+version = "3.5.1"
+description = "A small Python package for determining appropriate platform-specific dirs, e.g. a \"user data dir\"."
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.extras]
+docs = ["furo (>=2023.3.27)", "proselint (>=0.13)", "sphinx-autodoc-typehints (>=1.23,!=1.23.4)", "sphinx (>=6.2.1)"]
+test = ["appdirs (==1.4.4)", "covdefaults (>=2.3)", "pytest-cov (>=4)", "pytest-mock (>=3.10)", "pytest (>=7.3.1)"]
+
+[[package]]
 name = "pyinstaller"
 version = "5.11.0"
 description = "PyInstaller bundles a Python application and all its dependencies into a single package."
@@ -479,7 +491,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "flake8 (<5)", "pytest-co
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.9,<3.12"
-content-hash = "242394fa63b58fdef34d257fdbf2ca18320dd2168a2c841af4e7fd9dc014afce"
+content-hash = "0bcbda92c45a862555db3d01e4bf05981bed03235a3e0cb5eb58cc58da74c57d"
 
 [metadata.files]
 altgraph = []
@@ -500,6 +512,7 @@ packaging = []
 pandas = []
 pefile = []
 pillow = []
+platformdirs = []
 pyinstaller = []
 pyinstaller-hooks-contrib = []
 pyparsing = []
