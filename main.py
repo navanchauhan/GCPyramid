@@ -10,7 +10,11 @@ import sv_ttk
 import darkdetect
 
 import os
+import json
 import sys
+
+import subprocess
+import platform
 
 from os import path
 
@@ -30,6 +34,32 @@ Path(user_data_dir(appname, appauthor)).mkdir( parents=True, exist_ok=True )
 
 def get_companies_for_word_doc():
     None
+
+def read_config(config_file='config.json'):
+    default_config = {
+        'img_width': 3300,
+        'pyramid_width': 3000,
+        'img_height': 1550,
+        'overall_height': 2550,
+        'block_color': [0, 150, 255],
+        'dividend_color': [0, 150, 255],
+        'font_color': [255, 255, 255],
+        'normal_block': [0, 150, 255],
+        'padding': 15,
+        'radius': 10,
+        'logo_padding': 100,
+        'pyramid_padding_bottom': 350,
+        'max_companies_in_row': 10,
+    }
+    
+    if not os.path.exists(config_file):
+        with open(config_file, 'w') as f:
+            json.dump(default_config, f)
+        return default_config
+    else:
+        with open(config_file, 'r') as f:
+            config = json.load(f)
+        return config
 
 def pyramid_list(lst, sort_canadian=True):
     old_lst = lst
@@ -169,7 +199,7 @@ class CompanySelector:
         self.num_companies_selected_label = ttk.Label(self.master, text="0", font='SunValleyBodyStrongFont 18 bold')
         self.num_companies_selected_label.place(x=315,y=320,width=30,height=30)
 
-        self.companies_label = ttk.Label(self.master, text="Companies Selected", font='SunValleyBodyStrongFont 18')
+        self.companies_label = ttk.Label(self.master, text="Companies Selected", font='SunValleyBodyStrongFont 15')
         self.companies_label.place(x=340,y=320,width=200, height=30)
 
         self.pyramid_title_string = tk.StringVar()
@@ -364,15 +394,32 @@ class CompanySelector:
             pyramid_width = 3000
             img_height = 1550 #2550
             overall_height = 2550
-            block_color = (3, 37, 126)  # Blue color
+            block_color = (0, 150, 255)  # Blue color
             dividend_color = block_color #(1,50,32)  # Green color
             font_color = (255, 255, 255)  # White color
-            normal_block = (3, 37, 126) # Dark Blue  
+            normal_block = (0, 150, 255) # Dark Blue  
             padding = 15  # Padding around blocks
             radius = 10 
             logo_padding = 100 # top padding for logo
             pyramid_padding_bottom = 350 # bottom padding for pyramid
             max_companies_in_row = 10
+
+            config = read_config(path.join(user_data_dir(appname, appauthor), "config.json"))
+
+            img_width = config['img_width']
+            pyramid_width = config['pyramid_width']
+            img_height = config['img_height']
+            overall_height = config['overall_height']
+            block_color = tuple(config['block_color'])
+            dividend_color = tuple(config['dividend_color'])
+            font_color = tuple(config['font_color'])
+            normal_block = tuple(config['normal_block'])
+            padding = config['padding']
+            radius = config['radius']
+            logo_padding = config['logo_padding']
+            pyramid_padding_bottom = config['pyramid_padding_bottom']
+            max_companies_in_row = config['max_companies_in_row']
+
             base_path = "assets"
             primary_font = path.join(base_path, "baskerville.ttf")
             secondary_font = path.join(base_path, "gill_sans_bold.ttf")
@@ -489,7 +536,7 @@ class CompanySelector:
                     d.rounded_rectangle([x, y, x + block_width, y + block_height], fill=block_color, radius=radius)
 
                     # Adjust font size based on the length of the company name and block size
-                    font_size = min_font_size #min(block_width // (len(company) // 2 + 1), block_height // 2)
+                    font_size = min_font_size + 15
                     fnt = ImageFont.truetype(secondary_font, font_size)
 
                     # Implement word wrap for the company name
@@ -501,6 +548,9 @@ class CompanySelector:
                     text_height = bbox[3] - bbox[1]
                     text_x = x + (block_width - text_width) // 2
                     text_y = y + (block_height - text_height) // 2
+                    if "Constellation" in company and len(row) == 5:
+                        print("Manually shifting up")
+                        text_y -= 25
                     d.text((text_x, text_y), wrapped_company, font=fnt, fill=font_color, align='center', spacing=10)
 
 
@@ -613,8 +663,15 @@ class CompanySelector:
             final_img.paste(img, ((img_width-pyramid_width)//2, l_height + (overall_height - l_height - img_height) - pyramid_padding_bottom) )
 
             final_img.save(image_file_path)
-            final_img.show()
+            #final_img.show()
             #img.show()
+
+            if platform.system() == 'Darwin':       # macOS
+                subprocess.call(('open', image_file_path))
+            elif platform.system() == 'Windows':    # Windows
+                os.startfile(image_file_path)
+            else:                                   # linux variants
+                subprocess.call(('xdg-open', image_file_path))
 
 
 if __name__ == "__main__":
