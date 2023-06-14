@@ -675,15 +675,6 @@ class CompanySelector:
 
 
 if __name__ == "__main__":
-    import sentry_sdk
-    sentry_sdk.init(
-        dsn="https://c5822e9079a54ef2b28d4e93a11ebc86@o126149.ingest.sentry.io/4505211315617792",
-
-        # Set traces_sample_rate to 1.0 to capture 100%
-        # of transactions for performance monitoring.
-        # We recommend adjusting this value in production.
-        traces_sample_rate=1.0
-    )
     root = tk.Tk()
     wd = os.getcwd()
     try:
