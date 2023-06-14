@@ -32,7 +32,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='main',
+    name='GCPyramid',
     debug=False,
     bootloader_ignore_signals=False,
     strip=True,
@@ -49,7 +49,7 @@ exe = EXE(
 )
 app = BUNDLE(
     exe,
-    name='main.app',
+    name='GCPyramid.app',
     icon='assets/logo.jpeg',
     bundle_identifier='com.navanchauhan.gcpyramid',
 )
