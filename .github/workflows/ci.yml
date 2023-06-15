@@ -28,7 +28,7 @@ jobs:
       - name: Package for Windows
         run: |
           pip install -r requirements.txt
-          pyinstaller --add-data "assets;assets" --onefile --noconfirm --collect-data sv_ttk --name GCPyramid --icon assets/logo.jpeg main.py
+          pyinstaller --add-data "assets;assets" --onefile --noconfirm --collect-data sv_ttk --name GCPyramid --icon assets/logo.jpeg --windowed main.py
       - uses: actions/upload-artifact@v3
         with:
           name: pyramid-scheme

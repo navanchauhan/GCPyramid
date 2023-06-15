@@ -146,16 +146,19 @@ class CompanySelector:
         self.master.geometry("600x600")
         self.select_file_button = ttk.Button(self.master, text="Select Excel File", command=self.load_file)
         self.select_file_button.pack(pady=250)
-
+        print(path.join(user_data_dir(appname, appauthor), "default.txt"))
         try:
             with open(path.join(user_data_dir(appname, appauthor), "default.txt")) as f:
                 try:
-                    self.df = pd.read_excel(f.read())
+                    fname = f.read()
+                    self.df = pd.read_excel(fname)
                     self.df = self.df[self.df['Company Name'].notna()]
                     self.df = self.df[self.df['Symbol'].notna()]
                     self.show_companies()
                 except Exception as e:
                     print(f'Oh No {e}')
+                    os.remove(path.join(user_data_dir(appname, appauthor), "default.txt"))
+                    self.load_file()
         except FileNotFoundError:
             None
 
@@ -213,6 +216,12 @@ class CompanySelector:
 
         self.options_label = ttk.Label(self.master, text="Options", font='SunValleyBodyStrongFont 12 bold')
         self.options_label.place(x=250, y=150, width=100, height=20)
+
+        fname = open(path.join(user_data_dir(appname, appauthor), "default.txt")).read()
+        if len(fname) >= 35:
+            fname = f"...{fname[-30:]}"
+        self.db_label = ttk.Label(self.master, text=f"Using file: {fname}")
+        self.db_label.place(x=250,y=250, width=329, height=40)
 
         self.prepared_for_string = tk.StringVar()
         self.prepared_for_entry = ttk.Entry(self.master, textvariable=self.prepared_for_string)
