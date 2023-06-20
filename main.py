@@ -147,20 +147,21 @@ class CompanySelector:
         self.select_file_button = ttk.Button(self.master, text="Select Excel File", command=self.load_file)
         self.select_file_button.pack(pady=250)
         print(path.join(user_data_dir(appname, appauthor), "default.txt"))
-        try:
-            with open(path.join(user_data_dir(appname, appauthor), "default.txt")) as f:
-                try:
-                    fname = f.read()
-                    self.df = pd.read_excel(fname)
-                    self.df = self.df[self.df['Company Name'].notna()]
-                    self.df = self.df[self.df['Symbol'].notna()]
-                    self.show_companies()
-                except Exception as e:
-                    print(f'Oh No {e}')
-                    os.remove(path.join(user_data_dir(appname, appauthor), "default.txt"))
-                    self.load_file()
-        except FileNotFoundError:
-            None
+        # try:
+        #     with open(path.join(user_data_dir(appname, appauthor), "default.txt")) as f:
+        #         try:
+        #             fname = f.read()
+        #             self.df = pd.read_excel(fname)
+        #             self.df = self.df[self.df['Company Name'].notna()]
+        #             self.df = self.df[self.df['Symbol'].notna()]
+        #             self.show_companies()
+        #         except Exception as e:
+        #             print(f'Oh No {e}')
+        #             os.remove(path.join(user_data_dir(appname, appauthor), "default.txt"))
+        #             self.load_file()
+        # except FileNotFoundError:
+        #     None
+        self.show_companies()
 
     def load_file(self):
         file_path = askopenfilename(filetypes=[("Excel files", "*.xlsx *.xls")])
@@ -169,12 +170,40 @@ class CompanySelector:
 
         with open(path.join(user_data_dir(appname, appauthor), "default.txt"), "w") as f:
             f.write(file_path)
-        self.df = pd.read_excel(file_path)
-        self.df = self.df[self.df['Company Name'].notna()]
-        self.df = self.df[self.df['Symbol'].notna()]
-        self.show_companies()
+        try:
+            self.df = pd.read_excel(file_path)
+            self.df = self.df[self.df['Company Name'].notna()]
+            self.df = self.df[self.df['Symbol'].notna()]
+        except Exception as e:
+            print(f":( {e}")
+            tk.messagebox.showerror(title="Whoops :(", message=f"{e}")
+            return False
+        return True
+        #self.show_companies()
+
 
     def show_companies(self):
+        try:
+            with open(path.join(user_data_dir(appname, appauthor), "default.txt")) as f:
+                try:
+                    fname = f.read()
+                    self.df = pd.read_excel(fname)
+                    self.df = self.df[self.df['Company Name'].notna()]
+                    self.df = self.df[self.df['Symbol'].notna()]
+                except Exception as e:
+                    print(f'Oh No {e}')
+                    tk.messagebox.showerror(title="Whoops! An Error Occurred", message=f"{e}\n\nYou will be asked to load the spreadsheet")
+                    os.remove(path.join(user_data_dir(appname, appauthor), "default.txt"))
+                    loaded_file = self.load_file()
+                    while not loaded_file:
+                        loaded_file = self.load_file()
+        except FileNotFoundError:
+            print("No default file set")
+            tk.messagebox.showinfo(title="Hello world!", message="Since this is the first time you are using this software, please load the desired spreadsheet...")
+            loaded_file = self.load_file()
+            while not loaded_file:
+                loaded_file = self.load_file()
+
         self.select_file_button.pack_forget()
         self.master.geometry("")
         self.master.resizable(width=False, height=False)
@@ -200,10 +229,10 @@ class CompanySelector:
         self.company_listbox.listbox.bind('<<ListboxSelect>>', self.onselect)
 
         self.num_companies_selected_label = ttk.Label(self.master, text="0", font='SunValleyBodyStrongFont 18 bold')
-        self.num_companies_selected_label.place(x=315,y=320,width=30,height=30)
+        self.num_companies_selected_label.place(x=315,y=370,width=30,height=30)
 
         self.companies_label = ttk.Label(self.master, text="Companies Selected", font='SunValleyBodyStrongFont 15')
-        self.companies_label.place(x=340,y=320,width=200, height=30)
+        self.companies_label.place(x=340,y=370,width=200, height=30)
 
         self.pyramid_title_string = tk.StringVar()
         self.pyramid_title_string.set(f"Copyright (2004) by Gentry Capital Corporation")
@@ -246,12 +275,22 @@ class CompanySelector:
         self.generate_word_doc_checkbx = ttk.Checkbutton(self.master, text="Generate Description Document", onvalue=1, offvalue=0, variable=self.generate_word_doc)
         self.generate_word_doc_checkbx.place(x=250,y=220, width=329, height=30)
 
+        self.load_another_file_button = ttk.Button(self.master, text="Load Different Spreadsheet", command=self.load_another_file)
+        self.load_another_file_button.place(x=250, y=290, width=325, height=30)
+
         self.create_pyramid_button = ttk.Button(self.master, text="Create", command=self.create_pyramid)
         #self.create_pyramid_button.pack()
         self.create_pyramid_button.place(x=250,y=450,width=150,height=30)
 
         self.reset_button = ttk.Button(self.master, text="Reset", command=self.reset_fields)
         self.reset_button.place(x=250+150+25, y=450, width=150, height=30)
+
+    def load_another_file(self):
+        print("Trying to load another file...")
+        loaded_file = self.load_file()
+        while not loaded_file:
+            loaded_file = self.load_file()
+        self.show_companies()
 
     def onselect(self, evt):
         w = evt.widget
