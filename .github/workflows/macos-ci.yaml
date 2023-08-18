@@ -28,7 +28,7 @@ jobs:
       - name: Package for macOS
         run: |
           pip install -r requirements.txt
-          pyinstaller --add-data "assets:assets" --onefile --noconfirm --collect-data sv_ttk --name GCPyramid --icon assets/logo.jpeg --windowed main.py
+          pyinstaller --add-data "assets:assets" --onefile --noconfirm --collect-data sv_ttk --icon assets/logo.jpeg  --osx-bundle-identifier com.navanchauhan.gcpyramid --target-arch x86_64 --strip  --windowed --name GCPyramid main.py
       - name: Codesign executable
         env: 
           MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
@@ -40,7 +40,8 @@ jobs:
           security unlock-keychain -p 41random@123 build.keychain
           security import certificate.p12 -k build.keychain -P $MACOS_CERTIFICATE_PWD -T /usr/bin/codesign
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k 41random@123 build.keychain
-          /usr/bin/codesign --force -s 6BS49F3GLW ./dist/GCPyramid.app -v
+          /usr/bin/codesign --force --deep -s 6BS49F3GLW ./dist/GCPyramid.app -v
+          /usr/bin/codesign --force --deep -s 6BS49F3GLW ./dist/GCPyramid -v
       - uses: actions/upload-artifact@v3
         with:
           name: pyramid-scheme
