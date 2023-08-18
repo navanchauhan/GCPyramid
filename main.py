@@ -1,5 +1,6 @@
 import pandas as pd
 import tkinter as tk
+import textwrap
 from tkinter import ttk
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 from datetime import datetime
@@ -453,7 +454,7 @@ class CompanySelector:
             max_companies_in_row = 10
 
             config = read_config(path.join(user_data_dir(appname, appauthor), "config.json"))
-
+            print(config)
             img_width = config['img_width']
             pyramid_width = config['pyramid_width']
             img_height = config['img_height']
@@ -633,7 +634,13 @@ class CompanySelector:
                     if type(text5) == list:
                         text5.append(f"Prepared for {self.prepared_for_string.get()}")
                     else:
-                        text5 = [text5, f"Prepared for {self.prepared_for_string.get()}"]
+                        temp_prepared_for_text = f"Prepared for {self.prepared_for_string.get()}"
+                        if len(temp_prepared_for_text) > 30:
+                            text5 = [text5, "Prepared for: "]
+                            for line in textwrap.wrap(self.prepared_for_string.get(), 30, break_long_words=False):
+                                text5.append(line)
+                        else:
+                            text5 = [text5, f"Prepared for {self.prepared_for_string.get()}"]
             if self.advisor_string.get() != "":
                 advisor = self.advisor_string.get()
                 if text5 != "":
