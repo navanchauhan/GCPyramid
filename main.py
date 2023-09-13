@@ -289,8 +289,6 @@ class CompanySelector:
     def load_another_file(self):
         print("Trying to load another file...")
         loaded_file = self.load_file()
-        while not loaded_file:
-            loaded_file = self.load_file()
         self.show_companies()
 
     def onselect(self, evt):
