@@ -172,7 +172,7 @@ class CompanySelector:
         with open(path.join(user_data_dir(appname, appauthor), "default.txt"), "w") as f:
             f.write(file_path)
         try:
-            self.df = pd.read_excel(file_path)
+            self.df = pd.read_excel(file_path, keep_default_na=False)
             self.df = self.df[self.df['Company Name'].notna()]
             self.df = self.df[self.df['Symbol'].notna()]
         except Exception as e:
@@ -188,7 +188,7 @@ class CompanySelector:
             with open(path.join(user_data_dir(appname, appauthor), "default.txt")) as f:
                 try:
                     fname = f.read()
-                    self.df = pd.read_excel(fname)
+                    self.df = pd.read_excel(fname, keep_default_na=False)
                     self.df = self.df[self.df['Company Name'].notna()]
                     self.df = self.df[self.df['Symbol'].notna()]
                 except Exception as e:
